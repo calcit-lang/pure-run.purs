@@ -1,22 +1,19 @@
 module Calcit.Snapshot where
 
 import Data.Either
+import Data.Foldable
+import Data.Maybe
+import Data.Tuple
 import Effect
 import Prelude
 
 import Cirru.Edn (CirruEdn(..))
 import Cirru.Node (CirruNode(..))
+import Data.Array as DataArray
 import Data.Map (Map)
 import Data.Map as DataMap
-import Data.Maybe
 import Data.Set as DataSet
-import Data.Tuple
 import Data.Traversable (traverse)
-import Data.Foldable
-
-import Data.Array as DataArray
-
-import Partial.Unsafe (unsafePartial)
 
 -- Data Types
 
@@ -78,15 +75,17 @@ extractDefs :: CirruEdn -> Either EdnFailure (Map String CirruNode)
 extractDefs d = case d of
   CrEdnMap x ->
     let
-      nameToTuple :: CirruEdn -> Tuple String CirruNode
-      nameToTuple name = Tuple k v
-        where
-          -- TODO not safe...
-          k = unsafePartial $ fromJust $ hush $ ednAsString name
-          v = unsafePartial $ fromJust $ hush $ ednAsQuote $ fromJust $ DataMap.lookup name x
+      nameToTuple :: CirruEdn -> Either EdnFailure (Tuple String CirruNode)
+      nameToTuple name = do
+        k <- ednAsString name
+        valueEdn <- case (DataMap.lookup name x) of
+          Just v -> Right v
+          Nothing -> Left { message: "cannot find in map", edn: name  }
+        v <- ednAsQuote valueEdn
+        pure $ Tuple k v
 
-      pairs = map nameToTuple (DataArray.fromFoldable (DataMap.keys x))
-    in
+    in do
+      pairs <- traverse nameToTuple (DataArray.fromFoldable (DataMap.keys x))
       Right $ DataMap.fromFoldable pairs
   _ -> Left { message: "not a map", edn: d }
 
@@ -102,13 +101,15 @@ extractFiles :: CirruEdn -> Either EdnFailure (Map String FileInSnapShot)
 extractFiles d = case d of
   CrEdnMap x ->
     let
-      extractFilePair name = Tuple k v
-        where
-          -- TODO not safe
-          k = unsafePartial $ fromJust $ hush $ ednAsString name
-          v = unsafePartial $ fromJust $ hush $ extractEdnToFile $ fromJust $ DataMap.lookup name x
-      pairs = map extractFilePair (DataArray.fromFoldable (DataMap.keys x))
-    in
+      extractFilePair name = do
+        k <- ednAsString name
+        valueEdn <- case DataMap.lookup name x of
+          Just v -> Right v
+          Nothing -> Left { message: "cannot find in map", edn: name }
+        v <- extractEdnToFile valueEdn
+        pure $ Tuple k v
+    in do
+      pairs <- traverse extractFilePair (DataArray.fromFoldable (DataMap.keys x))
       Right $ DataMap.fromFoldable pairs
   _ -> Left { message: "not a map", edn: d }
 

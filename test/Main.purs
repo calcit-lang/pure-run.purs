@@ -10,4 +10,3 @@ import Calcit.Runner
 main :: Effect Unit
 main = do
   runCalcit "./example/compact.cirru"
-  log "You should add some tests."
