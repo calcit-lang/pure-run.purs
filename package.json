@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@cirru/parser.ts": "^0.0.1",
+    "@cirru/writer.ts": "^0.1.3"
+  }
+}
