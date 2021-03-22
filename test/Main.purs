@@ -5,9 +5,8 @@ import Prelude
 import Effect (Effect)
 import Effect.Class.Console (log)
 
-import Calcit.Main
+import Calcit.Runner
 
 main :: Effect Unit
 main = do
-  runCalcit
-  log "You should add some tests."
+  runCalcit "./example/compact.cirru"

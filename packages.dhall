@@ -109,12 +109,20 @@ let upstream =
 
 in  upstream
   with cirru-parser =
-    { dependencies = [ "arrays" ]
+    { dependencies = [
+      , "arrays"
+      , "maybe"
+      , "prelude"
+      ]
     , repo = "https://github.com/Cirru/parser.purs.git"
-    , version = "v0.0.2"
+    , version = "v0.0.4"
     }
   with cirru-edn =
-    { dependencies = [ "cirru-parser" ]
+    { dependencies = [
+      , "cirru-parser"
+      , "strings"
+      , "ordered-collections"
+      ]
     , repo = "https://github.com/Cirru/cirru-edn.purs.git"
-    , version = "v0.0.1"
+    , version = "v0.0.4"
     }
