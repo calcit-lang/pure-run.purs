@@ -5,6 +5,7 @@ import Data.Either
 import Data.Number as Number
 import Data.Array ((!!))
 import Data.Maybe
+import Data.Tuple
 
 import Effect
 
@@ -19,10 +20,10 @@ calcitAsNumber x = case x of
   CalcitNumber n -> Right n
   _ -> Left { message: "not a Number", data: [x] }
 
-type CalcitProc = (Array CalcitData) -> Either CalcitFailure CalcitData
+type CalcitProc = (Array CalcitData) -> CalcitScope -> Either CalcitFailure CalcitData
 
 fn_NativeAdd :: CalcitProc
-fn_NativeAdd xs = do
+fn_NativeAdd xs scope = do
   a1 <- case xs !! 0 of
     Nothing -> Left { message: "cannot access 0 in array", data: xs }
     Just x -> Right x

@@ -18,16 +18,10 @@ import Cirru.Edn (CirruEdn(..), parseCirruEdn)
 
 import Calcit.Primes
 import Calcit.Snapshot (Snapshot, loadSnapshotData)
-import Calcit.Builtin
 
-type Scope = Map String CalcitData
+import Calcit.Program
 
-coreFns :: Map String CalcitProc
-coreFns = Map.fromFoldable [
-  (Tuple "&+" fn_NativeAdd)
-]
-
-evaluateEdn :: CirruEdn -> Scope -> Effect CalcitData
+evaluateEdn :: CirruEdn -> CalcitScope -> Effect CalcitData
 evaluateEdn xs s = do
   log "TODO"
   pure CalcitNil
@@ -37,7 +31,7 @@ runCalcit filepath = do
   content <- readTextFile UTF8 filepath
   case parseCirruEdn content of
     Right code -> do
-      log $ "EDN data: " <> (show code)
+      -- log $ "EDN data: " <> (show code)
       let snapshot = loadSnapshotData code
       log ""
       log $ "Snapshot: " <> (show snapshot)

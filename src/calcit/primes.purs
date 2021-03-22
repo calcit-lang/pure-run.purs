@@ -139,3 +139,5 @@ instance ordCalcitData :: Ord CalcitData where
       LT -> LT
       GT -> GT
       EQ -> compare body1 body2
+
+type CalcitScope = Map String CalcitData

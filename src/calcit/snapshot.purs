@@ -139,9 +139,3 @@ loadSnapshotData edn = do
     }
     , files: files
     }
-
-data ImportRule = ImportNsRule String Boolean | ImportDefRule String String
-
--- | TODO
-extractImportMap :: CirruEdn -> Map String ImportRule
-extractImportMap edn = DataMap.fromFoldable []
