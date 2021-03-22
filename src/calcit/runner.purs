@@ -4,15 +4,33 @@ import Prelude
 
 import Effect (Effect)
 import Effect.Console (log)
+import Effect.Exception
+
 import Data.Either
+import Data.Map
+import Data.Map as Map
+import Data.Tuple
 
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readTextFile)
 
-import Cirru.Edn (parseCirruEdn)
+import Cirru.Edn (CirruEdn(..), parseCirruEdn)
 
 import Calcit.Primes
 import Calcit.Snapshot (Snapshot, loadSnapshotData)
+import Calcit.Builtin
+
+type Scope = Map String CalcitData
+
+coreFns :: Map String CalcitProc
+coreFns = Map.fromFoldable [
+  (Tuple "&+" fn_NativeAdd)
+]
+
+evaluateEdn :: CirruEdn -> Scope -> Effect CalcitData
+evaluateEdn xs s = do
+  log "TODO"
+  pure CalcitNil
 
 runCalcit :: String -> Effect Unit
 runCalcit filepath = do
