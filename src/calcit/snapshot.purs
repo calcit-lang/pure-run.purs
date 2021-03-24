@@ -7,13 +7,17 @@ import Data.Tuple
 import Effect
 import Prelude
 
-import Cirru.Edn (CirruEdn(..))
-import Cirru.Node (CirruNode(..))
 import Data.Array as DataArray
 import Data.Map (Map)
 import Data.Map as DataMap
+import Data.Set (Set)
 import Data.Set as DataSet
 import Data.Traversable (traverse)
+
+import Cirru.Edn (CirruEdn(..))
+import Cirru.Node (CirruNode(..))
+
+import Calcit.Primes
 
 -- Data Types
 
@@ -35,9 +39,8 @@ type Snapshot = {
   files :: Map String FileInSnapShot
 }
 
--- working with EDN
 
-type EdnFailure = { message :: String, edn :: CirruEdn }
+-- working with EDN
 
 isEdnMap :: CirruEdn -> Boolean
 isEdnMap d = case d of

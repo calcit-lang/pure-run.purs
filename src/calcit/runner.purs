@@ -1,25 +1,20 @@
 module Calcit.Runner where
 
-import Prelude
+import Prelude (Unit, bind, discard, pure, show, ($), (<>))
 
 import Effect (Effect)
 import Effect.Console (log)
-import Effect.Exception
 
-import Data.Either
-import Data.Map
-import Data.Map as Map
-import Data.Tuple
+import Data.Either (Either(..))
 
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readTextFile)
 
-import Cirru.Edn (CirruEdn(..), parseCirruEdn)
+import Cirru.Edn (CirruEdn, parseCirruEdn)
 
-import Calcit.Primes
-import Calcit.Snapshot (Snapshot, loadSnapshotData)
-
-import Calcit.Program
+import Calcit.Primes (CalcitData(..), CalcitScope)
+import Calcit.Snapshot (loadSnapshotData)
+import Calcit.Program (extractProgramData)
 
 evaluateEdn :: CirruEdn -> CalcitScope -> Effect CalcitData
 evaluateEdn xs s = do
@@ -33,7 +28,14 @@ runCalcit filepath = do
     Right code -> do
       -- log $ "EDN data: " <> (show code)
       let snapshot = loadSnapshotData code
-      log ""
-      log $ "Snapshot: " <> (show snapshot)
+      case snapshot of
+        Right s -> do
+          log ""
+          log $ "Snapshot: " <> (show s)
+          case extractProgramData s of
+            Right a -> log $ "Program data: " <> (show a)
+            Left x -> log $ "Failed" <> (show x)
+        Left x -> do
+          log $ "EDN Failure" <> (show x)
     Left nodes ->
       log $ "Failed to parse" <> (show nodes)
