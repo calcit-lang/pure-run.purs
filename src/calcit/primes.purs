@@ -141,3 +141,9 @@ instance ordCalcitData :: Ord CalcitData where
       EQ -> compare body1 body2
 
 type CalcitScope = Map String CalcitData
+
+type EdnFailure = { message :: String, edn :: CirruEdn }
+
+type CalcitFailure = { message :: String, data :: CalcitData }
+
+type ProgramOverview = Map String (Set String)

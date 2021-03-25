@@ -1,9 +1,9 @@
 module Test.Main where
 
-import Prelude
+import Prelude (Unit)
 
 import Effect (Effect)
-import Effect.Class.Console (log)
+-- import Effect.Class.Console (log)
 
 import Calcit.Runner
 
