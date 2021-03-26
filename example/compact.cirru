@@ -8,6 +8,8 @@
       :ns $ quote (ns app.main)
       :defs $ {}
         |main! $ quote
-          defn main! () $ echo "\"This is a demo"
+          defn main! ()
+            echo $ + 1 1
+            echo "\"This is a demo"
       :proc $ quote ()
       :configs $ {}

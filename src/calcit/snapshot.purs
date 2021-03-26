@@ -1,23 +1,21 @@
 module Calcit.Snapshot where
 
-import Data.Either
-import Data.Foldable
-import Data.Maybe
-import Data.Tuple
-import Effect
-import Prelude
+import Data.Either (Either(..), note)
+import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..))
+-- import Effect
+import Prelude (bind, pure, ($))
 
 import Data.Array as DataArray
 import Data.Map (Map)
 import Data.Map as DataMap
-import Data.Set (Set)
-import Data.Set as DataSet
+-- import Data.Set (Set)
 import Data.Traversable (traverse)
 
 import Cirru.Edn (CirruEdn(..))
-import Cirru.Node (CirruNode(..))
+import Cirru.Node (CirruNode)
 
-import Calcit.Primes
+import Calcit.Primes (EdnFailure)
 
 -- Data Types
 

@@ -3,25 +3,23 @@ module Calcit.Program where
 
 import Data.Map as Map
 import Data.Map.Internal as MapInternal
-import Data.Either
-import Data.Set as Set
+import Data.Either (Either(..))
 
 import Prelude (bind)
 
-import Effect
+import Effect (Effect)
 import Effect.Ref as Ref
 import Data.Traversable (traverse)
 
-import Data.Tuple
-import Data.Show
+import Data.Tuple (Tuple(..))
+import Data.Show (class Show)
 
-import Data.Maybe
+import Data.Maybe (Maybe(..))
 
-import Cirru.Node
-import Cirru.Edn
-import Calcit.Primes
-import Calcit.Builtin
-import Calcit.Snapshot
+import Cirru.Node (CirruNode)
+import Cirru.Edn (CirruEdn)
+import Calcit.Primes (CalcitData(..), CalcitFailure, cirruToCalcit)
+import Calcit.Snapshot (Snapshot)
 
 data ImportRule = ImportNsRule String | ImportDefRule String String
 
@@ -34,6 +32,7 @@ type ProgramFileData = {
 instance showImportRule :: Show ImportRule where
   show x = "TODO import"
 
+-- | real program state
 programEvaledData :: Effect (Ref.Ref (Map.Map String (Map.Map String CalcitData)))
 programEvaledData = Ref.new (Map.fromFoldable [])
 
@@ -54,6 +53,7 @@ extractProgramData s =
         Just file -> Right file
         Nothing -> Left { message: "cannot find ns in map", data: CalcitNil }
       let file = {
+        -- TODO parse from rules
         importMap: Map.fromFoldable [],
         defs: Map.mapMaybe cirruToMaybeCalcit fileInfo.defs
       }
@@ -67,9 +67,7 @@ extractProgramData s =
       Right xs -> Right (Map.fromFoldable xs)
       Left x -> Left x
 
-
--- | TODO maybe top level scope, with core functions injected
-coreFns :: Map.Map String CalcitProc
-coreFns = Map.fromFoldable [
-  (Tuple "&+" fn_NativeAdd)
-]
+lookupDef :: String -> String -> (Map.Map String ProgramFileData) -> Maybe (CalcitData)
+lookupDef ns def p = do
+  file <- Map.lookup ns p
+  Map.lookup def file.defs

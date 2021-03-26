@@ -7,9 +7,15 @@ import Data.Show
 import Data.Ord
 import Data.Eq
 import Data.Set as DataSet
-import Data.Functor as DataFunctor
+import Data.Functor as Functor
 import Data.Set (Set)
 import Data.Semigroup
+import Data.String as String
+import Data.String.Regex (regex, test)
+import Data.String.Regex.Flags (noFlags)
+import Data.Number as Number
+import Data.Either (Either(..))
+import Data.Maybe (Maybe(..))
 
 import Prelude ((&&))
 
@@ -31,7 +37,7 @@ data CalcitData = CalcitNil
                  | CalcitSet (Set CalcitData)
                  | CalcitRecord String (Array String) (Array CalcitData)
                  -- TODO scope
-                 | CalcitFn String (Array CirruNode) (Array CirruNode)
+                 | CalcitFn String (Array CalcitData) (Array CalcitData) CalcitScope
 
 instance showCalcitData :: Show CalcitData where
   show CalcitNil = "nil"
@@ -40,13 +46,13 @@ instance showCalcitData :: Show CalcitData where
   show (CalcitNumber n) = toString n
   show (CalcitSymbol s) = "'" <> s
   show (CalcitKeyword s) = ":" <> s
-  show (CalcitString s) = s
-  show (CalcitList xs) = "TODO List"
-  show (CalcitMap xs) = "TODO Map"
+  show (CalcitString s) = "|" <> s -- TODO handle formatting with spaces
+  show (CalcitList xs) = "([] " <> (String.joinWith " " (Functor.map show xs))  <> ")"
+  show (CalcitMap xs) = "(TODO Map)"
   -- show (CalcitAtom a) = "TODO"
-  show (CalcitSet xs) = "TODO Set"
-  show (CalcitRecord name fields values) = "TODO Record"
-  show (CalcitFn name args body) = "TODO fn"
+  show (CalcitSet xs) = "(TODO Set)"
+  show (CalcitRecord name fields values) = "(TODO Record)"
+  show (CalcitFn name args body scope) = "(TODO fn)"
 
 ednToCalcit :: CirruEdn -> CalcitData
 ednToCalcit d = case d of
@@ -56,16 +62,34 @@ ednToCalcit d = case d of
   CrEdnSymbol x -> CalcitSymbol x
   CrEdnKeyword x -> CalcitKeyword x
   CrEdnString x -> CalcitString x
-  CrEdnList xs -> CalcitList (DataFunctor.map ednToCalcit xs)
+  CrEdnList xs -> CalcitList (Functor.map ednToCalcit xs)
   CrEdnSet xs -> CalcitSet (DataSet.map ednToCalcit xs)
   CrEdnMap xs -> CalcitNil -- TODO
-  CrEdnRecord name fields values -> CalcitRecord name fields (DataFunctor.map ednToCalcit values)
+  CrEdnRecord name fields values -> CalcitRecord name fields (Functor.map ednToCalcit values)
   CrEdnQuote xs -> cirruToCalcit xs
+
+-- | tests if thats a float
+matchFloat :: String -> Boolean
+matchFloat s = case (regex "^-?(\\d+)(\\.\\d*)?$" noFlags) of
+  Right pattern -> test pattern s
+  Left failure -> false
 
 cirruToCalcit :: CirruNode -> CalcitData
 cirruToCalcit node = case node of
-  CirruLeaf s -> CalcitSymbol s
-  CirruList xs -> CalcitList (DataFunctor.map cirruToCalcit xs)
+  CirruLeaf "nil" -> CalcitNil
+  CirruLeaf "true" -> CalcitBool true
+  CirruLeaf "false" -> CalcitBool false
+  CirruLeaf s -> case String.take 1 s of
+    ":" -> CalcitKeyword (String.drop 1 s)
+    "|" -> CalcitString (String.drop 1 s)
+    "\"" -> CalcitString (String.drop 1 s)
+    "'" -> CalcitList [CalcitSymbol "quote", (cirruToCalcit (CirruLeaf (String.drop 1 s)))]
+    _ -> if matchFloat s
+      then case Number.fromString s of
+        Just n -> CalcitNumber n
+        Nothing -> CalcitSymbol s
+      else CalcitSymbol s
+  CirruList xs -> CalcitList (Functor.map cirruToCalcit xs)
 
 instance eqCalcitData :: Eq CalcitData where
   eq CalcitNil CalcitNil = true
@@ -79,7 +103,8 @@ instance eqCalcitData :: Eq CalcitData where
   eq (CalcitMap x) (CalcitMap y) = x == y
   eq (CalcitRecord name1 fields1 values1) (CalcitRecord name2 fields2 values2) = name1 == name2 &&
     fields1 == fields2 && values1 == values2
-  eq (CalcitFn name1 args1 body1) (CalcitFn name2 args2 body2) = name1 == name2 && args1 == args2 && body1 == body2
+  eq (CalcitFn name1 args1 body1 scope1) (CalcitFn name2 args2 body2 scope2) = name1 == name2 &&
+    args1 == args2 && body1 == body2 && scope1 == scope2
 
   eq _ _ = false
 
@@ -132,13 +157,16 @@ instance ordCalcitData :: Ord CalcitData where
   compare (CalcitRecord _ _ _) _ = LT
   compare _ (CalcitRecord _ _ _) = GT
 
-  compare (CalcitFn name1 args1 body1) (CalcitFn name2 args2 body2) = case compare name2 name2 of
+  compare (CalcitFn name1 args1 body1 scope1) (CalcitFn name2 args2 body2 scope2) = case compare name2 name2 of
     LT -> LT
     GT -> GT
     EQ -> case compare args1 args2 of
       LT -> LT
       GT -> GT
-      EQ -> compare body1 body2
+      EQ -> case compare body1 body2 of
+        LT -> LT
+        GT -> GT
+        EQ ->  compare scope1 scope2
 
 type CalcitScope = Map String CalcitData
 
