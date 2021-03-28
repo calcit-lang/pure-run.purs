@@ -5,7 +5,6 @@ import Prelude (Unit, bind, discard, pure, show, ($), (<>))
 import Effect (Effect)
 import Effect.Console (log)
 import Data.Maybe (Maybe(..))
-import Data.Unit (unit)
 import Data.Array as Array
 import Data.Array ((!!))
 
@@ -21,46 +20,45 @@ import Cirru.Edn (parseCirruEdn)
 
 import Calcit.Primes (CalcitData(..), CalcitScope)
 import Calcit.Snapshot (loadSnapshotData)
-import Calcit.Program (extractProgramData, lookupDef)
-import Calcit.Builtin (nativeAdd, nativeEcho, nativeDefn)
+import Calcit.Program (extractProgramData, ProgramCodeData, lookupDef, lookupEvaledDef, writeEvaledDef)
+import Calcit.Builtin (coreNsDefs)
 
-evaluateEdn :: CalcitData -> CalcitScope -> String -> Effect CalcitData
-evaluateEdn xs scope ns = case xs of
+evaluateExpr :: CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
+evaluateExpr xs scope ns programData = case xs of
   CalcitNil -> pure xs
   CalcitBool _ -> pure xs
   CalcitNumber n -> pure (CalcitNumber n)
-  CalcitSymbol s -> case Map.lookup s scope of
-    Nothing -> throw $ "Cannot find variable: " <> s
+  CalcitSymbol s -> case Map.lookup s coreNsDefs of
     Just v -> pure v
+    Nothing -> case Map.lookup s scope of
+      Just v -> pure v
+      Nothing -> do
+        v <- lookupEvaledDef ns s
+        case v of
+          Just defData -> pure defData
+          Nothing -> case lookupDef ns s programData of
+            Nothing -> throw $ "Unknown operator: " <> ns <> "/" <> s
+            Just code -> do
+              newV <- evaluateExpr code scope ns programData
+              writeEvaledDef ns s newV
+              pure newV
   CalcitKeyword _ -> pure xs
   CalcitString _ -> pure xs
+  CalcitFn _ _ -> pure xs
+  CalcitSyntax _ _ -> pure xs
   CalcitList ys -> case ys !! 0 of
     Nothing -> throw "cannot eval empty list"
-    Just op -> case op of
-      CalcitSymbol s -> case s of
-        "+" -> do
-          args <- traverse (\x -> evaluateEdn x scope ns) (Array.drop 1 ys)
-          case nativeAdd args scope of
-            Left x -> throw (show x)
-            Right x -> pure (x)
-        "echo" -> do
-          args <- traverse (\x -> evaluateEdn x scope ns) (Array.drop 1 ys)
-          nativeEcho args
-        "defn" -> case nativeDefn (Array.drop 1 ys) scope of
-          Right x -> pure x
-          Left x -> throw $ "Failed to construct a function" <> (show x)
-        z -> throw $ "Unknown operation: " <> z
-      CalcitFn name args body s2 ->
-        let
-          callLines :: Array CalcitData -> Effect CalcitData
-          callLines zs = case zs !! 0 of
-            Just z0 -> do
-              v <- evaluateEdn z0 s2 ns
-              callLines (Array.drop 1 zs)
-            Nothing -> pure CalcitNil
-        in
-          callLines body
-      _ -> throw "Unknown type of operation"
+    Just op -> do
+      v <- evaluateExpr op scope ns programData
+      case v of
+        CalcitFn _ f -> do
+          args <- traverse (\x -> evaluateExpr x scope ns programData) (Array.drop 1 ys)
+          f args
+        CalcitSyntax _ f -> f (Array.drop 1 ys) scope evalFn
+          where
+            evalFn zs s2 = evaluateExpr zs s2 ns programData
+        CalcitSymbol s -> throw "cannot use symbol as function"
+        _ -> throw "Unknown type of operation"
   _ -> throw $ "Unexpected structure: " <> (show xs)
 
 runCalcit :: String -> Effect Unit
@@ -85,9 +83,9 @@ runCalcit filepath = do
                 Nothing -> log "no main function"
                 Just xs -> do
                   let emptyScope = Map.fromFoldable []
-                  v <- evaluateEdn xs emptyScope "app.main"
+                  v <- evaluateExpr xs emptyScope "app.main" programData
                   case v of
-                    CalcitFn _ _ _ _ -> do
-                      result <- evaluateEdn (CalcitList [v]) emptyScope "app.main"
-                      log $ "Return value: " <> (show v)
+                    CalcitFn name f -> do
+                      result <- f [v]
+                      log $ "Return value: " <> (show result)
                     _ -> throw "Expected function entry"
