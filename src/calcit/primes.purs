@@ -1,28 +1,29 @@
 
 module Calcit.Primes where
 
-import Data.Tuple
-import Data.Map
-import Data.Show
-import Data.Ord
 import Data.Eq
-import Data.Set as DataSet
-import Data.Functor as Functor
-import Data.Set (Set)
+import Data.Map
+import Data.Ord
 import Data.Semigroup
+import Data.Show
+import Data.Tuple
+import Cirru.Edn (CirruEdn(..))
+import Cirru.Node (CirruNode(..))
+import Data.Either (Either(..))
+import Data.Functor as Functor
+import Data.Map as Map
+import Data.Maybe (Maybe(..))
+import Data.Number as Number
+import Data.Number.Format (toString)
+import Data.Set (Set)
+import Data.Set as DataSet
 import Data.String as String
 import Data.String.Regex (regex, test)
 import Data.String.Regex.Flags (noFlags)
-import Data.Number as Number
-import Data.Either (Either(..))
-import Data.Maybe (Maybe(..))
-
+import Effect (Effect(..))
 import Prelude ((&&))
 
-import Data.Number.Format (toString)
-
-import Cirru.Edn (CirruEdn(..))
-import Cirru.Node (CirruNode(..))
+type FnEvalFn = CalcitData -> CalcitScope -> Effect CalcitData
 
 data CalcitData = CalcitNil
                  | CalcitBool Boolean
@@ -36,8 +37,8 @@ data CalcitData = CalcitNil
                  -- | CalcitAtom CalcitData
                  | CalcitSet (Set CalcitData)
                  | CalcitRecord String (Array String) (Array CalcitData)
-                 -- TODO scope
-                 | CalcitFn String (Array CalcitData) (Array CalcitData) CalcitScope
+                 | CalcitFn String (Array CalcitData -> Effect CalcitData)
+                 | CalcitSyntax String (Array CalcitData -> CalcitScope -> FnEvalFn -> Effect CalcitData)
 
 instance showCalcitData :: Show CalcitData where
   show CalcitNil = "nil"
@@ -52,7 +53,8 @@ instance showCalcitData :: Show CalcitData where
   -- show (CalcitAtom a) = "TODO"
   show (CalcitSet xs) = "(TODO Set)"
   show (CalcitRecord name fields values) = "(TODO Record)"
-  show (CalcitFn name args body scope) = "(TODO fn)"
+  show (CalcitFn _ _) = "(TODO Fn)"
+  show (CalcitSyntax _ _) = "(TODO Syntax)"
 
 ednToCalcit :: CirruEdn -> CalcitData
 ednToCalcit d = case d of
@@ -103,8 +105,8 @@ instance eqCalcitData :: Eq CalcitData where
   eq (CalcitMap x) (CalcitMap y) = x == y
   eq (CalcitRecord name1 fields1 values1) (CalcitRecord name2 fields2 values2) = name1 == name2 &&
     fields1 == fields2 && values1 == values2
-  eq (CalcitFn name1 args1 body1 scope1) (CalcitFn name2 args2 body2 scope2) = name1 == name2 &&
-    args1 == args2 && body1 == body2 && scope1 == scope2
+  eq (CalcitFn name1 _) (CalcitFn name2 _) = name1 == name2 -- TODO inaccurate
+  eq (CalcitSyntax name1 _) (CalcitSyntax name2 _) = name1 == name2 -- TODO skip fn comparing
 
   eq _ _ = false
 
@@ -157,16 +159,13 @@ instance ordCalcitData :: Ord CalcitData where
   compare (CalcitRecord _ _ _) _ = LT
   compare _ (CalcitRecord _ _ _) = GT
 
-  compare (CalcitFn name1 args1 body1 scope1) (CalcitFn name2 args2 body2 scope2) = case compare name2 name2 of
-    LT -> LT
-    GT -> GT
-    EQ -> case compare args1 args2 of
-      LT -> LT
-      GT -> GT
-      EQ -> case compare body1 body2 of
-        LT -> LT
-        GT -> GT
-        EQ ->  compare scope1 scope2
+  compare (CalcitFn name1 _) (CalcitFn name2 _) = compare name1 name2 -- TODO inaccurate
+  compare (CalcitFn name1 _) _  = LT
+  compare _ (CalcitFn name1 _)  = GT
+
+  compare (CalcitSyntax name1 _) (CalcitSyntax name2 _) = compare name1 name2 -- skip fn comparing
+  compare (CalcitSyntax name1 _) _  = LT
+  compare _ (CalcitSyntax name1 _)  = GT
 
 type CalcitScope = Map String CalcitData
 
@@ -175,3 +174,5 @@ type EdnFailure = { message :: String, edn :: CirruEdn }
 type CalcitFailure = { message :: String, data :: CalcitData }
 
 type ProgramOverview = Map String (Set String)
+
+emptyScope = Map.fromFoldable []
