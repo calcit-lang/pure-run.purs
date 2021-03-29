@@ -14,7 +14,7 @@
             echo $ fibo 0
             echo $ fibo 5
         |fibo $ quote
-          defn fibo (n)
+          defn fibo (n) (; echo "\"calling fibo" n)
             if (&< n 2) 1 $ &+
               fibo $ &- n 1
               fibo $ &- n 2

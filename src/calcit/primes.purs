@@ -11,6 +11,7 @@ import Cirru.Edn (CirruEdn(..))
 import Cirru.Node (CirruNode(..))
 import Data.Either (Either(..))
 import Data.Functor as Functor
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Number as Number
 import Data.Number.Format (toString)
@@ -173,3 +174,5 @@ type EdnFailure = { message :: String, edn :: CirruEdn }
 type CalcitFailure = { message :: String, data :: CalcitData }
 
 type ProgramOverview = Map String (Set String)
+
+emptyScope = Map.fromFoldable []

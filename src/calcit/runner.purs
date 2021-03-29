@@ -18,7 +18,7 @@ import Data.Traversable (traverse)
 
 import Cirru.Edn (parseCirruEdn)
 
-import Calcit.Primes (CalcitData(..), CalcitScope)
+import Calcit.Primes (CalcitData(..), CalcitScope, emptyScope)
 import Calcit.Snapshot (loadSnapshotData)
 import Calcit.Program (extractProgramData, ProgramCodeData, lookupDef, lookupEvaledDef, writeEvaledDef)
 import Calcit.Builtin (coreNsDefs)
@@ -39,7 +39,7 @@ evaluateExpr xs scope ns programData = case xs of
           Nothing -> case lookupDef ns s programData of
             Nothing -> throw $ "Unknown operator: " <> ns <> "/" <> s
             Just code -> do
-              newV <- evaluateExpr code scope ns programData
+              newV <- evaluateExpr code emptyScope ns programData
               writeEvaledDef ns s newV
               pure newV
   CalcitKeyword _ -> pure xs
@@ -49,6 +49,7 @@ evaluateExpr xs scope ns programData = case xs of
   CalcitList ys -> case ys !! 0 of
     Nothing -> throw "cannot eval empty list"
     Just op -> do
+      -- log $ "Eval expression: " <> (show ys)
       v <- evaluateExpr op scope ns programData
       case v of
         CalcitFn _ f -> do
@@ -82,8 +83,9 @@ runCalcit filepath = do
               case lookupDef "app.main" "main!" programData of
                 Nothing -> log "no main function"
                 Just xs -> do
-                  let emptyScope = Map.fromFoldable []
-                  v <- evaluateExpr xs emptyScope "app.main" programData
+                  v <- do
+                    -- log $ "\nEval: " <> (show xs)
+                    evaluateExpr xs emptyScope "app.main" programData
                   case v of
                     CalcitFn name f -> do
                       result <- f [v]

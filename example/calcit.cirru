@@ -77,6 +77,12 @@
                               |T $ {} (:type :leaf) (:by |u0) (:at 1616914741367) (:text |&-)
                               |j $ {} (:type :leaf) (:by |u0) (:at 1616914738568) (:text |n)
                               |r $ {} (:type :leaf) (:by |u0) (:at 1616914755814) (:text |2)
+              |t $ {} (:type :expr) (:by |u0) (:at 1616991546362)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1616991547090) (:text |echo)
+                  |j $ {} (:type :leaf) (:by |u0) (:at 1616991550493) (:text "|\"calling fibo")
+                  |r $ {} (:type :leaf) (:by |u0) (:at 1616991864617) (:text |n)
+                  |D $ {} (:type :leaf) (:by |u0) (:at 1616994589710) (:text |;)
         :proc $ {} (:type :expr) (:by |u0) (:at 1616315471762)
           :data $ {}
         :configs $ {}
