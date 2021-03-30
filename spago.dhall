@@ -10,6 +10,7 @@ You can edit this file as you like.
   , "debug"
   , "effect"
   , "exceptions"
+  , "integers"
   , "node-fs-aff"
   , "psci-support"
   ]
