@@ -3,11 +3,9 @@ module Calcit.Builtin where
 
 import Data.Show
 
-import Calcit.Primes (CalcitData(..), CalcitFailure, CalcitScope, FnEvalFn)
-import Cirru.Node (CirruNode(..))
+import Calcit.Primes (CalcitData(..), CalcitScope, FnEvalFn)
 import Data.Array (length, zip, (!!))
 import Data.Array as Array
-import Data.Either (Either(..))
 import Data.Functor as Functor
 import Data.Int (toNumber)
 import Data.Int as Int
@@ -16,10 +14,10 @@ import Data.Maybe (Maybe(..))
 import Data.String as String
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
-import Effect (Effect(..))
+import Effect (Effect)
 import Effect.Class.Console (log)
 import Effect.Exception (throw)
-import Prelude (bind, (+), (-), ($), discard, pure, (==), (||), (<), (>), (<>))
+import Prelude (bind, discard, pure, unit, ($), (+), (-), (<), (<>), (==), (>), (||))
 
 calcitAsNumber :: CalcitData -> Effect Number
 calcitAsNumber x = case x of
@@ -131,6 +129,18 @@ fnNativeSlice xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
   -- TODO
   _, _, _ -> throw "failed to call slice"
 
+-- | evaluate lines and return value of last line
+evaluateLines :: Array CalcitData -> CalcitScope -> FnEvalFn -> Effect CalcitData
+evaluateLines xs scope evalFn = case xs !! 0 of
+  Just xs0 -> do
+    -- log $ "call line: " <> (show xs0)
+    v <- evalFn xs0 scope
+    let follows = Array.drop 1 xs
+    if (Array.length follows) == 0
+    then pure v
+    else evaluateLines (Array.drop 1 xs) scope evalFn
+  Nothing -> pure CalcitNil
+
 syntaxDefn :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
 syntaxDefn xs scope evalFn =
   do
@@ -147,23 +157,13 @@ syntaxDefn xs scope evalFn =
       CalcitList ys -> pure ys
       _ -> throw "function args not list"
     argNames <- traverse extractArgName args
-    let f = \ys -> callLines (Array.drop 2 xs) (Map.unions [(Map.fromFoldable (zip argNames ys)), scope])
+    let f = \ys -> evaluateLines (Array.drop 2 xs) (Map.unions [(Map.fromFoldable (zip argNames ys)), scope]) evalFn
     pure (CalcitFn name f)
   where
     extractArgName :: CalcitData -> Effect String
     extractArgName arg = case arg of
       CalcitSymbol s -> pure s
       _ -> throw "expected symbol"
-    callLines :: Array CalcitData -> CalcitScope -> Effect CalcitData
-    callLines zs s2 = case zs !! 0 of
-      Just z0 -> do
-        -- log $ "call line: " <> (show z0)
-        v <- evalFn z0 s2
-        let follows = Array.drop 1 zs
-        if (Array.length follows) == 0
-        then pure v
-        else callLines (Array.drop 1 zs) s2
-      Nothing -> pure CalcitNil
 
 syntaxIf :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
 syntaxIf xs scope evalFn = do
@@ -177,6 +177,21 @@ syntaxIf xs scope evalFn = do
     else case xs !! 1 of
       Just trueBranch -> evalFn trueBranch scope
       Nothing -> pure CalcitNil
+
+syntaxNativeLet :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
+syntaxNativeLet xs scope evalFn = do
+  pair <- case xs !! 0 of
+    Just (CalcitList ys) -> if (Array.length ys) == 2
+      then case (ys !! 0), (ys !! 1) of
+        Just (CalcitSymbol s), Just v ->
+          pure { k: s, v: v }
+        _, _ -> throw "expected symbol in &let"
+      else throw "expected pair length of 2"
+    Just _ -> throw "expected a pair"
+    Nothing -> throw "expected pair in first argument"
+  v <- evalFn pair.v scope
+  let bodyScope = Map.insert pair.k v scope
+  evaluateLines (Array.drop 1 xs) bodyScope evalFn
 
 syntaxComment :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
 syntaxComment _ _ _ = pure CalcitNil
@@ -197,5 +212,6 @@ coreNsDefs = Map.fromFoldable [
   (Tuple "defn" (CalcitSyntax "defn" syntaxDefn)),
   (Tuple "if" (CalcitSyntax "if" syntaxIf)),
   (Tuple ";" (CalcitSyntax ";" syntaxComment)),
+  (Tuple "&let" (CalcitSyntax ";" syntaxNativeLet)),
   (Tuple "--" (CalcitSyntax "--" syntaxComment))
 ]
