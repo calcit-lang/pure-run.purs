@@ -30,7 +30,7 @@ evaluateExpr xs scope ns programData = case xs of
   CalcitNil -> pure xs
   CalcitBool _ -> pure xs
   CalcitNumber n -> pure (CalcitNumber n)
-  CalcitSymbol s -> case Map.lookup s coreNsDefs of
+  CalcitSymbol s symbolNs -> case Map.lookup s coreNsDefs of
     Just v -> pure v
     Nothing -> case Map.lookup s scope of
       Just v -> pure v
@@ -40,9 +40,9 @@ evaluateExpr xs scope ns programData = case xs of
           Just defData -> pure defData
           Nothing -> case lookupDef coreNs s programData of
             Just code -> evaluateNewDef code emptyScope coreNs s programData
-            Nothing -> case lookupDef ns s programData of
-              Just code -> evaluateNewDef code emptyScope ns s programData
-              Nothing -> throw $ "Unknown operator: " <> ns <> "/" <> s
+            Nothing -> case lookupDef symbolNs s programData of
+              Just code -> evaluateNewDef code emptyScope symbolNs s programData
+              Nothing -> throw $ "Unknown operator: " <> symbolNs <> "/" <> s
   CalcitKeyword _ -> pure xs
   CalcitString _ -> pure xs
   CalcitFn _ _ -> pure xs
@@ -59,7 +59,7 @@ evaluateExpr xs scope ns programData = case xs of
         CalcitSyntax _ f -> f (Array.drop 1 ys) scope evalFn
           where
             evalFn zs s2 = evaluateExpr zs s2 ns programData
-        CalcitSymbol s -> throw "cannot use symbol as function"
+        CalcitSymbol s _ -> throw "cannot use symbol as function"
         _ -> throw "Unknown type of operation"
   _ -> throw $ "Unexpected structure: " <> (show xs)
 

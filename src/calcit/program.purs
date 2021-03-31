@@ -56,12 +56,9 @@ extractProgramData s =
       let file = {
         -- TODO parse from rules
         importMap: importMap,
-        defs: Map.mapMaybe cirruToMaybeCalcit fileInfo.defs
+        defs: Map.mapMaybe (\x -> Just (cirruToCalcit x ns)) fileInfo.defs
       }
       Right (Tuple ns file)
-
-    cirruToMaybeCalcit :: CirruNode -> Maybe CalcitData
-    cirruToMaybeCalcit x = Just (cirruToCalcit x)
   in
     -- use internal for list
     case traverse getFileTuple (MapInternal.keys s.files) of
