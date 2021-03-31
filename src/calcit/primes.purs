@@ -175,4 +175,8 @@ type CalcitFailure = { message :: String, data :: CalcitData }
 
 type ProgramOverview = Map String (Set String)
 
+emptyScope :: Map.Map String CalcitData
 emptyScope = Map.fromFoldable []
+
+coreNs :: String
+coreNs = "calcit.core"

@@ -13,6 +13,17 @@
             echo "\"This is a demo"
             echo $ fibo 0
             echo $ fibo 5
+            echo $ [] 1 2 3 4
+            echo $ nth ([] 1 2 3 4) 1
+            echo $ nth ([] 1 2 3 4) 10
+            echo $ first ([] 1 2 3 4)
+            echo $ last ([] 1 2 3 4)
+            echo $ count ([] 1 2 3 4)
+            echo $ &= 1 2
+            echo $ &= (&+ 1 1) 2
+            echo $ slice ([] 1 2 3 4) 1 3
+            echo $ rest ([] 1 2 3 4)
+            echo $ butlast ([] 1 2 3 4)
         |fibo $ quote
           defn fibo (n) (; echo "\"calling fibo" n)
             if (&< n 2) 1 $ &+

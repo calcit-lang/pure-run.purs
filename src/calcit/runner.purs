@@ -1,27 +1,29 @@
 module Calcit.Runner where
 
-import Prelude (Unit, bind, discard, pure, show, ($), (<>))
-
-import Effect (Effect)
-import Effect.Console (log)
-import Data.Maybe (Maybe(..))
-import Data.Array as Array
+import Calcit.Builtin (coreNsDefs)
+import Calcit.Primes (CalcitData(..), CalcitScope, coreNs, emptyScope)
+import Calcit.Program (ProgramCodeData, extractProgramData, lookupDef, lookupEvaledDef, writeEvaledDef)
+import Calcit.Snapshot (Snapshot, loadSnapshotData)
+import Cirru.Edn (parseCirruEdn)
 import Data.Array ((!!))
-
+import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Map as Map
+import Data.Maybe (Maybe(..))
+import Data.String (Pattern(..), split)
+import Data.Traversable (traverse)
+import Effect (Effect)
+import Effect.Console (log)
 import Effect.Exception (throw)
-
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readTextFile)
-import Data.Traversable (traverse)
+import Prelude (Unit, bind, discard, pure, show, ($), (<>))
 
-import Cirru.Edn (parseCirruEdn)
-
-import Calcit.Primes (CalcitData(..), CalcitScope, emptyScope)
-import Calcit.Snapshot (loadSnapshotData)
-import Calcit.Program (extractProgramData, ProgramCodeData, lookupDef, lookupEvaledDef, writeEvaledDef)
-import Calcit.Builtin (coreNsDefs)
+evaluateNewDef :: CalcitData -> CalcitScope -> String -> String -> ProgramCodeData -> Effect CalcitData
+evaluateNewDef xs scope ns def programData = do
+  newV <- evaluateExpr xs emptyScope ns programData
+  writeEvaledDef ns def newV
+  pure newV
 
 evaluateExpr :: CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
 evaluateExpr xs scope ns programData = case xs of
@@ -36,12 +38,11 @@ evaluateExpr xs scope ns programData = case xs of
         v <- lookupEvaledDef ns s
         case v of
           Just defData -> pure defData
-          Nothing -> case lookupDef ns s programData of
-            Nothing -> throw $ "Unknown operator: " <> ns <> "/" <> s
-            Just code -> do
-              newV <- evaluateExpr code emptyScope ns programData
-              writeEvaledDef ns s newV
-              pure newV
+          Nothing -> case lookupDef coreNs s programData of
+            Just code -> evaluateNewDef code emptyScope coreNs s programData
+            Nothing -> case lookupDef ns s programData of
+              Just code -> evaluateNewDef code emptyScope ns s programData
+              Nothing -> throw $ "Unknown operator: " <> ns <> "/" <> s
   CalcitKeyword _ -> pure xs
   CalcitString _ -> pure xs
   CalcitFn _ _ -> pure xs
@@ -62,32 +63,58 @@ evaluateExpr xs scope ns programData = case xs of
         _ -> throw "Unknown type of operation"
   _ -> throw $ "Unexpected structure: " <> (show xs)
 
-runCalcit :: String -> Effect Unit
-runCalcit filepath = do
+loadSnapshotFile :: String -> Effect Snapshot
+loadSnapshotFile filepath = do
   content <- readTextFile UTF8 filepath
   case parseCirruEdn content of
-    Left nodes -> log $ "Failed to parse" <> (show nodes)
-    Right code -> do
-      -- log $ "EDN data: " <> (show code)
-      let snapshot = loadSnapshotData code
-      log $ "Snapshot:" <> (show snapshot)
+    Left nodes -> throw $ "failed to parse edn" <> filepath
+    Right codeTree -> do
+      let snapshot = loadSnapshotData codeTree
+      -- log $ "Snapshot: " <> (show snapshot)
       case snapshot of
-        Left x -> log $ "EDN Failure" <> (show x)
-        Right s -> do
-          case extractProgramData s of
-            Left x -> do
-              log $ "Failed" <> (show x)
+        Left s -> throw $ "failed to parse snapshot" <> (show snapshot) <> (show s)
+        Right s -> pure s
 
-            Right programData -> do
-              log $ "Program data: " <> (show programData)
-              case lookupDef "app.main" "main!" programData of
-                Nothing -> log "no main function"
-                Just xs -> do
-                  v <- do
-                    -- log $ "\nEval: " <> (show xs)
-                    evaluateExpr xs emptyScope "app.main" programData
-                  case v of
-                    CalcitFn name f -> do
-                      result <- f [v]
-                      log $ "Return value: " <> (show result)
-                    _ -> throw "Expected function entry"
+loadCompactFile :: Snapshot -> Effect ProgramCodeData
+loadCompactFile snapshot = do
+  case extractProgramData snapshot of
+    Left x -> do
+      throw $ "failed to extract program: " <> (show x)
+    Right v -> do
+      pure v
+
+coreFilepath :: String
+coreFilepath = "./src/includes/calcit-core.cirru"
+
+extractNsDef :: String -> Effect { ns :: String, def :: String }
+extractNsDef s = case split (Pattern "/") s of
+    [ns, def] -> pure { ns: ns, def: def }
+    _ -> throw "failed to extract ns/def"
+
+runCalcit :: String -> Effect Unit
+runCalcit filepath = do
+  programSnapshot <- loadSnapshotFile filepath
+  programData <- case extractProgramData programSnapshot of
+    Left reason -> throw $ "Failed to extract program" <> (show reason)
+    Right v -> pure v
+  coreSnapshot <- loadSnapshotFile coreFilepath
+  coreData <- case extractProgramData coreSnapshot of
+    Left reason -> throw $ "Failed to extract core" <> (show reason)
+    Right v -> pure v
+  initConfig <- extractNsDef programSnapshot.configs.initFn
+
+  let runtimeData = Map.union programData coreData
+  -- log $ "\nProgram data: " <> (show runtimeData)
+  -- log $  "init fn: " <> initConfig.ns <> "/" <> initConfig.def
+
+  case lookupDef initConfig.ns initConfig.def runtimeData of
+    Nothing -> throw "no main function"
+    Just xs -> do
+      v <- do
+        -- log $ "\nEval: " <> (show xs)
+        evaluateExpr xs emptyScope initConfig.ns runtimeData
+      case v of
+        CalcitFn name f -> do
+          result <- f [v]
+          log $ "Return value: " <> (show result)
+        _ -> throw "Expected function entry"

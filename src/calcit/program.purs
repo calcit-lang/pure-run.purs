@@ -1,9 +1,10 @@
 
 module Calcit.Program where
 
+import Data.Unit
+
 import Calcit.Primes (CalcitData(..), CalcitFailure, cirruToCalcit, CalcitScope)
 import Calcit.Snapshot (Snapshot)
-import Cirru.Edn (CirruEdn)
 import Cirru.Node (CirruNode)
 import Data.Either (Either(..))
 import Data.Map as Map
@@ -12,7 +13,6 @@ import Data.Maybe (Maybe(..))
 import Data.Show (class Show)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
-import Data.Unit
 import Effect (Effect)
 import Effect.Ref as Ref
 import Prelude (bind, pure)
@@ -37,11 +37,11 @@ programEvaledData :: Effect (Ref.Ref (Map.Map String (Map.Map String CalcitData)
 programEvaledData = Ref.new (Map.fromFoldable [])
 
 -- | TODO crossing namespaces
-extractImportRule :: CirruEdn -> Either CalcitFailure (Array (Tuple String ImportRule))
+extractImportRule :: CirruNode -> Either CalcitFailure (Array (Tuple String ImportRule))
 extractImportRule edn = Right [(Tuple "TODO" (ImportNsRule "TODO"))]
 
 -- | TODO
-extractImportMap :: CirruEdn -> Either CalcitFailure (Map.Map String ImportRule)
+extractImportMap :: CirruNode -> Either CalcitFailure (Map.Map String ImportRule)
 extractImportMap edn = Right (Map.fromFoldable [])
 
 extractProgramData :: Snapshot -> Either CalcitFailure ProgramCodeData
@@ -52,9 +52,10 @@ extractProgramData s =
       fileInfo <- case Map.lookup ns s.files of
         Just file -> Right file
         Nothing -> Left { message: "cannot find ns in map", data: CalcitNil }
+      importMap <- extractImportMap fileInfo.ns
       let file = {
         -- TODO parse from rules
-        importMap: Map.fromFoldable [],
+        importMap: importMap,
         defs: Map.mapMaybe cirruToMaybeCalcit fileInfo.defs
       }
       Right (Tuple ns file)
