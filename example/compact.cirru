@@ -5,7 +5,10 @@
     :version |0.0.1
   :files $ {}
     |app.main $ {}
-      :ns $ quote (ns app.main)
+      :ns $ quote
+        ns app.main $ :require
+          app.lib :refer $ v
+          app.lib :as lib
       :defs $ {}
         |main! $ quote
           defn main! ()
@@ -27,10 +30,20 @@
             &let
               a $ &+ 1 2
               echo a
+            echo "\"import" v
+            echo "\"local" w
+            echo "\"import ns" lib/v
         |fibo $ quote
           defn fibo (n) (; echo "\"calling fibo" n)
             if (&< n 2) 1 $ &+
               fibo $ &- n 1
               fibo $ &- n 2
+        |w $ quote (def "\"TODO w" 10)
+      :proc $ quote ()
+      :configs $ {}
+    |app.lib $ {}
+      :ns $ quote (ns app.lib)
+      :defs $ {}
+        |v $ quote (def "\"TODO v" 1)
       :proc $ quote ()
       :configs $ {}
