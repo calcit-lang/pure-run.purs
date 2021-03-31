@@ -1,12 +1,11 @@
 
 module Calcit.Primes where
 
-import Data.Eq
+import Data.Eq (class Eq, (==))
 import Data.Map
-import Data.Ord
-import Data.Semigroup
-import Data.Show
-import Data.Tuple
+import Data.Ord (class Ord, Ordering(..),compare)
+import Data.Semigroup ((<>))
+import Data.Show (class Show, show)
 import Cirru.Edn (CirruEdn(..))
 import Cirru.Node (CirruNode(..))
 import Data.Either (Either(..))
@@ -20,7 +19,7 @@ import Data.Set as DataSet
 import Data.String as String
 import Data.String.Regex (regex, test)
 import Data.String.Regex.Flags (noFlags)
-import Effect (Effect(..))
+import Effect (Effect)
 import Prelude ((&&))
 
 type FnEvalFn = CalcitData -> CalcitScope -> Effect CalcitData
@@ -164,8 +163,6 @@ instance ordCalcitData :: Ord CalcitData where
   compare _ (CalcitFn name1 _)  = GT
 
   compare (CalcitSyntax name1 _) (CalcitSyntax name2 _) = compare name1 name2 -- skip fn comparing
-  compare (CalcitSyntax name1 _) _  = LT
-  compare _ (CalcitSyntax name1 _)  = GT
 
 type CalcitScope = Map String CalcitData
 

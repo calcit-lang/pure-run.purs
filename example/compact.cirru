@@ -24,6 +24,9 @@
             echo $ slice ([] 1 2 3 4) 1 3
             echo $ rest ([] 1 2 3 4)
             echo $ butlast ([] 1 2 3 4)
+            &let
+              a $ &+ 1 2
+              echo a
         |fibo $ quote
           defn fibo (n) (; echo "\"calling fibo" n)
             if (&< n 2) 1 $ &+
