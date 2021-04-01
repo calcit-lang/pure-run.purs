@@ -7,6 +7,7 @@
     "pure-run": "./bin/command.js"
   },
   "scripts": {
+    "r": "spago run -a example/compact.cirru",
     "build": "spago bundle-app -t dist/index.js"
   },
   "dependencies": {
