@@ -165,6 +165,30 @@ syntaxDefn xs scope evalFn =
       CalcitSymbol s ns -> pure s
       _ -> throw "expected symbol"
 
+syntaxDefmacro :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
+syntaxDefmacro xs scope evalFn =
+  do
+    nameNode <- case xs !! 0 of
+      Just v -> pure v
+      Nothing -> throw "macro name not found"
+    name <- case nameNode of
+      CalcitSymbol s ns -> pure s
+      _ -> throw "macro name not a symbol"
+    argsNode <- case xs !! 1 of
+      Just v -> pure v
+      Nothing -> throw "macro args not found"
+    args <- case argsNode of
+      CalcitList ys -> pure ys
+      _ -> throw "macro args not list"
+    argNames <- traverse extractArgName args
+    let f = \ys -> evaluateLines (Array.drop 2 xs) (Map.unions [(Map.fromFoldable (zip argNames ys)), scope]) evalFn
+    pure (CalcitMacro name f)
+  where
+    extractArgName :: CalcitData -> Effect String
+    extractArgName arg = case arg of
+      CalcitSymbol s ns -> pure s
+      _ -> throw "expected symbol"
+
 syntaxIf :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
 syntaxIf xs scope evalFn = do
   cond <- case xs !! 0 of
@@ -196,6 +220,38 @@ syntaxNativeLet xs scope evalFn = do
 syntaxComment :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
 syntaxComment _ _ _ = pure CalcitNil
 
+syntaxQuote :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
+syntaxQuote xs scope evalFn = case xs !! 0 of
+  Just x0 -> pure x0
+  Nothing -> throw "expected an argument for quote"
+
+syntaxQuasiquote :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
+syntaxQuasiquote xs scope evalFn = case xs !! 0 of
+  Nothing -> throw "quasiquote expected a node"
+  Just code ->
+    do
+      ret <- replaceCode code
+      case ret !! 0 of
+        Just v -> pure v
+        Nothing -> throw "missing quote expr"
+    where
+    replaceCode :: CalcitData -> Effect (Array CalcitData)
+    replaceCode c = case c of
+      CalcitList ys -> case (ys !! 0), (ys !! 1) of
+        Just (CalcitSymbol "~" _), Just expr -> do
+          v <- evalFn expr scope
+          pure [v]
+        Just (CalcitSymbol "~@" _), Just expr -> do
+          ret <- evalFn expr scope
+          case ret of
+            CalcitList zs -> pure zs
+            _ -> throw "unknown result from unquite-slice"
+        _, _ -> do
+          vv <- traverse replaceCode ys
+          -- log $ "vv: " <> (show vv) <> " " <> (show (Array.concat vv))
+          pure [CalcitList (Array.concat vv)]
+      _ -> pure [c]
+
 coreNsDefs :: Map.Map String CalcitData
 coreNsDefs = Map.fromFoldable [
   (Tuple "&+" (CalcitFn "&+" fnNativeAdd)),
@@ -209,8 +265,11 @@ coreNsDefs = Map.fromFoldable [
   (Tuple "count" (CalcitFn "count" fnNativeCount)),
   (Tuple "slice" (CalcitFn "slice" fnNativeSlice)),
 
+  (Tuple "defmacro" (CalcitSyntax "defmacro" syntaxDefmacro)),
   (Tuple "defn" (CalcitSyntax "defn" syntaxDefn)),
   (Tuple "if" (CalcitSyntax "if" syntaxIf)),
+  (Tuple "quote" (CalcitSyntax "quote" syntaxQuote)),
+  (Tuple "quasiquote" (CalcitSyntax "quasiquote" syntaxQuasiquote)),
   (Tuple ";" (CalcitSyntax ";" syntaxComment)),
   (Tuple "&let" (CalcitSyntax ";" syntaxNativeLet)),
   (Tuple "--" (CalcitSyntax "--" syntaxComment))

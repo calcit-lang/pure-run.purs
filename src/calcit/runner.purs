@@ -2,7 +2,7 @@ module Calcit.Runner where
 
 import Calcit.Builtin (coreNsDefs)
 import Calcit.Primes (CalcitData(..), CalcitScope, coreNs, emptyScope)
-import Calcit.Program (ProgramCodeData, extractProgramData, lookupDef, lookupDefTargetInImport, lookupEvaledDef, lookupNsTargetInImport, programEvaledData, writeEvaledDef)
+import Calcit.Program (ProgramCodeData, extractProgramData, lookupDef, lookupDefTargetInImport, lookupEvaledDef, lookupNsTargetInImport, writeEvaledDef)
 import Calcit.Snapshot (Snapshot, loadSnapshotData)
 import Cirru.Edn (parseCirruEdn)
 import Data.Array ((!!))
@@ -80,6 +80,20 @@ evaluateExpr xs scope ns programData = case xs of
       -- log $ "Eval expression: " <> (show ys)
       v <- evaluateExpr op scope ns programData
       case v of
+        CalcitMacro _ f -> do
+          expr <- f (Array.drop 1 ys)
+          case expr of
+            CalcitNil -> pure CalcitNil
+            CalcitBool _ -> pure expr
+            CalcitNumber _ -> pure expr
+            CalcitString _ -> pure expr
+            CalcitKeyword _ -> pure expr
+            CalcitSymbol s symbolNs -> evaluateExpr expr scope ns programData
+            CalcitList code -> do
+              -- log $ "the code:" <> show code
+              evaluateExpr expr scope ns programData
+            _ -> throw "unknown data from defmacro"
+
         CalcitFn _ f -> do
           args <- traverse (\x -> evaluateExpr x scope ns programData) (Array.drop 1 ys)
           f args
