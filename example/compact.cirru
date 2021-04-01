@@ -36,6 +36,10 @@
             echo "\"macro" $ m-inc 2
             echo "\"quasi macro" $ m-inc-2 3
             echo "\"quote splice" $ m-count (1 2 3 4)
+            echo "\"foldl" $ foldl ([] 1 2 3) 10 &+
+            echo "\"map" $ map ([] 1 2 3) inc
+            echo "\"concat" $ concat
+              [] ([] 1 2 3) ([] 4 5 6)
         |fibo $ quote
           defn fibo (n) (; echo "\"calling fibo" n)
             if (&< n 2) 1 $ &+
