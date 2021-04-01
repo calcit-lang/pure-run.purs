@@ -13,5 +13,8 @@ jobs:
 
       - run: yarn
       - run: spago test
+      - run: yarn build
 
-      - run: echo "TODO publish"
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}

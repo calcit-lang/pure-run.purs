@@ -41,13 +41,13 @@
             if (&< n 2) 1 $ &+
               fibo $ &- n 1
               fibo $ &- n 2
-        |w $ quote (def "\"TODO w" 10)
+        |w $ quote (def w 10)
       :proc $ quote ()
       :configs $ {}
     |app.lib $ {}
       :ns $ quote (ns app.lib)
       :defs $ {}
-        |v $ quote (def "\"TODO v" 1)
+        |v $ quote (def v 1)
         |m-inc $ quote
           defmacro m-inc (x)
             [] &+ v $ [] &+ x 1

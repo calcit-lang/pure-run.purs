@@ -1,4 +1,14 @@
 {
+  "name": "@calcit/pure-run",
+  "description": "toy interpreter to run compact.cirru file emitted from calcit-editor",
+  "version": "0.0.1-a2",
+  "license": "MIT",
+  "bin": {
+    "pure-run": "./bin/command.js"
+  },
+  "scripts": {
+    "build": "spago bundle-app -t dist/index.js"
+  },
   "dependencies": {
     "@cirru/parser.ts": "^0.0.1",
     "@cirru/writer.ts": "^0.1.3"

@@ -1,0 +1,8 @@
+
+.spago/*
+.github/*
+.psci_modules/*
+example/*
+output/*
+
+yarn.lock

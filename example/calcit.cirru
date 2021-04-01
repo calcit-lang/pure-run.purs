@@ -301,7 +301,7 @@
           |w $ {} (:type :expr) (:by |u0) (:at 1617211365026)
             :data $ {}
               |T $ {} (:type :leaf) (:by |u0) (:at 1617211368009) (:text |def)
-              |j $ {} (:type :leaf) (:by |u0) (:at 1617211371533) (:text "|\"TODO w")
+              |j $ {} (:type :leaf) (:by |u0) (:at 1617273342604) (:text |w)
               |r $ {} (:type :leaf) (:by |u0) (:at 1617211373227) (:text |10)
         :proc $ {} (:type :expr) (:by |u0) (:at 1616315471762)
           :data $ {}
@@ -315,7 +315,7 @@
           |v $ {} (:type :expr) (:by |u0) (:at 1617208821938)
             :data $ {}
               |T $ {} (:type :leaf) (:by |u0) (:at 1617208824697) (:text |def)
-              |j $ {} (:type :leaf) (:by |u0) (:at 1617211345810) (:text "|\"TODO v")
+              |j $ {} (:type :leaf) (:by |u0) (:at 1617273289268) (:text |v)
               |r $ {} (:type :leaf) (:by |u0) (:at 1617208825999) (:text |1)
           |m-inc $ {} (:type :expr) (:by |u0) (:at 1617251535922)
             :data $ {}

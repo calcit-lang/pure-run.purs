@@ -12,6 +12,8 @@ You can edit this file as you like.
   , "exceptions"
   , "integers"
   , "node-fs-aff"
+  , "node-path"
+  , "node-process"
   , "psci-support"
   ]
 , packages = ./packages.dhall
