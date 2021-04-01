@@ -27,7 +27,7 @@ type FnEvalFn = CalcitData -> CalcitScope -> Effect CalcitData
 data CalcitData = CalcitNil
                  | CalcitBool Boolean
                  | CalcitNumber Number
-                 | CalcitSymbol String
+                 | CalcitSymbol String String
                  | CalcitKeyword String
                  | CalcitString String
                  -- TODO use sequence later
@@ -44,7 +44,7 @@ instance showCalcitData :: Show CalcitData where
   show (CalcitBool true) = "true"
   show (CalcitBool false) = "false"
   show (CalcitNumber n) = toString n
-  show (CalcitSymbol s) = "'" <> s
+  show (CalcitSymbol s ns) = "'" <> s
   show (CalcitKeyword s) = ":" <> s
   show (CalcitString s) = "|" <> s -- TODO handle formatting with spaces
   show (CalcitList xs) = "([] " <> (String.joinWith " " (Functor.map show xs))  <> ")"
@@ -55,19 +55,20 @@ instance showCalcitData :: Show CalcitData where
   show (CalcitFn _ _) = "(TODO Fn)"
   show (CalcitSyntax _ _) = "(TODO Syntax)"
 
-ednToCalcit :: CirruEdn -> CalcitData
-ednToCalcit d = case d of
+ednToCalcit :: CirruEdn -> String -> CalcitData
+ednToCalcit d ns = case d of
   CrEdnNil -> CalcitNil
   CrEdnBool x -> CalcitBool x
   CrEdnNumber x -> CalcitNumber x
-  CrEdnSymbol x -> CalcitSymbol x
+  CrEdnSymbol x -> CalcitSymbol x ns
   CrEdnKeyword x -> CalcitKeyword x
   CrEdnString x -> CalcitString x
-  CrEdnList xs -> CalcitList (Functor.map ednToCalcit xs)
-  CrEdnSet xs -> CalcitSet (DataSet.map ednToCalcit xs)
+  CrEdnList xs -> CalcitList (Functor.map (\y -> ednToCalcit y ns) xs)
+  CrEdnSet xs -> CalcitSet (DataSet.map (\y -> ednToCalcit y ns) xs)
   CrEdnMap xs -> CalcitNil -- TODO
-  CrEdnRecord name fields values -> CalcitRecord name fields (Functor.map ednToCalcit values)
-  CrEdnQuote xs -> cirruToCalcit xs
+  CrEdnRecord name fields values ->
+    CalcitRecord name fields (Functor.map (\y -> ednToCalcit y ns) values)
+  CrEdnQuote xs -> cirruToCalcit xs ns
 
 -- | tests if thats a float
 matchFloat :: String -> Boolean
@@ -75,8 +76,8 @@ matchFloat s = case (regex "^-?(\\d+)(\\.\\d*)?$" noFlags) of
   Right pattern -> test pattern s
   Left failure -> false
 
-cirruToCalcit :: CirruNode -> CalcitData
-cirruToCalcit node = case node of
+cirruToCalcit :: CirruNode -> String -> CalcitData
+cirruToCalcit node ns = case node of
   CirruLeaf "nil" -> CalcitNil
   CirruLeaf "true" -> CalcitBool true
   CirruLeaf "false" -> CalcitBool false
@@ -84,19 +85,19 @@ cirruToCalcit node = case node of
     ":" -> CalcitKeyword (String.drop 1 s)
     "|" -> CalcitString (String.drop 1 s)
     "\"" -> CalcitString (String.drop 1 s)
-    "'" -> CalcitList [CalcitSymbol "quote", (cirruToCalcit (CirruLeaf (String.drop 1 s)))]
+    "'" -> CalcitList [CalcitSymbol "quote" ns, (cirruToCalcit (CirruLeaf (String.drop 1 s)) ns)]
     _ -> if matchFloat s
       then case Number.fromString s of
         Just n -> CalcitNumber n
-        Nothing -> CalcitSymbol s
-      else CalcitSymbol s
-  CirruList xs -> CalcitList (Functor.map cirruToCalcit xs)
+        Nothing -> CalcitSymbol s ns
+      else CalcitSymbol s ns
+  CirruList xs -> CalcitList (Functor.map (\x -> cirruToCalcit x ns) xs)
 
 instance eqCalcitData :: Eq CalcitData where
   eq CalcitNil CalcitNil = true
   eq (CalcitBool x) (CalcitBool y) = x == y
   eq (CalcitNumber x) (CalcitNumber y) = x == y
-  eq (CalcitSymbol x) (CalcitSymbol y) = x == y
+  eq (CalcitSymbol x xNs) (CalcitSymbol y yNs) = x == y -- && xNs == yNs
   eq (CalcitKeyword x) (CalcitKeyword y) = x == y
   eq (CalcitString x) (CalcitString y) = x == y
   eq (CalcitList x) (CalcitList y) = x == y
@@ -124,9 +125,12 @@ instance ordCalcitData :: Ord CalcitData where
   compare (CalcitNumber x) _                = LT
   compare _ (CalcitNumber x)                = GT
 
-  compare (CalcitSymbol x) (CalcitSymbol y) = compare x y
-  compare (CalcitSymbol x) _                = LT
-  compare _ (CalcitSymbol x)                = GT
+  compare (CalcitSymbol x xNs) (CalcitSymbol y yNs) = case compare x y of
+    LT -> LT
+    GT -> GT
+    EQ -> compare xNs yNs
+  compare (CalcitSymbol x _) _                = LT
+  compare _ (CalcitSymbol x _)                = GT
 
   compare (CalcitKeyword x) (CalcitKeyword y) = compare x y
   compare (CalcitKeyword x) _                = LT

@@ -17,7 +17,7 @@ import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Class.Console (log)
 import Effect.Exception (throw)
-import Prelude (bind, discard, pure, unit, ($), (+), (-), (<), (<>), (==), (>), (||))
+import Prelude (bind, discard, pure, ($), (+), (-), (<), (<>), (==), (>), (||))
 
 calcitAsNumber :: CalcitData -> Effect Number
 calcitAsNumber x = case x of
@@ -148,7 +148,7 @@ syntaxDefn xs scope evalFn =
       Just v -> pure v
       Nothing -> throw "function name not found"
     name <- case nameNode of
-      CalcitSymbol s -> pure s
+      CalcitSymbol s ns -> pure s
       _ -> throw "function name not a symbol"
     argsNode <- case xs !! 1 of
       Just v -> pure v
@@ -162,7 +162,7 @@ syntaxDefn xs scope evalFn =
   where
     extractArgName :: CalcitData -> Effect String
     extractArgName arg = case arg of
-      CalcitSymbol s -> pure s
+      CalcitSymbol s ns -> pure s
       _ -> throw "expected symbol"
 
 syntaxIf :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
@@ -183,7 +183,7 @@ syntaxNativeLet xs scope evalFn = do
   pair <- case xs !! 0 of
     Just (CalcitList ys) -> if (Array.length ys) == 2
       then case (ys !! 0), (ys !! 1) of
-        Just (CalcitSymbol s), Just v ->
+        Just (CalcitSymbol s ns), Just v ->
           pure { k: s, v: v }
         _, _ -> throw "expected symbol in &let"
       else throw "expected pair length of 2"

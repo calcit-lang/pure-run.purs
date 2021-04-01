@@ -2,7 +2,7 @@ module Calcit.Runner where
 
 import Calcit.Builtin (coreNsDefs)
 import Calcit.Primes (CalcitData(..), CalcitScope, coreNs, emptyScope)
-import Calcit.Program (ProgramCodeData, extractProgramData, lookupDef, lookupEvaledDef, writeEvaledDef)
+import Calcit.Program (ProgramCodeData, extractProgramData, lookupDef, lookupDefTargetInImport, lookupEvaledDef, lookupNsTargetInImport, programEvaledData, writeEvaledDef)
 import Calcit.Snapshot (Snapshot, loadSnapshotData)
 import Cirru.Edn (parseCirruEdn)
 import Data.Array ((!!))
@@ -11,13 +11,15 @@ import Data.Either (Either(..))
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), split)
+import Data.String as String
 import Data.Traversable (traverse)
+import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Console (log)
 import Effect.Exception (throw)
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readTextFile)
-import Prelude (Unit, bind, discard, pure, show, ($), (<>))
+import Prelude (Unit, bind, discard, pure, show, ($), (<>), (<), (>), (&&), (-), (>=))
 
 evaluateNewDef :: CalcitData -> CalcitScope -> String -> String -> ProgramCodeData -> Effect CalcitData
 evaluateNewDef xs scope ns def programData = do
@@ -25,24 +27,49 @@ evaluateNewDef xs scope ns def programData = do
   writeEvaledDef ns def newV
   pure newV
 
+
+evalSymbolFromProgram :: String -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
+evalSymbolFromProgram s scope symbolNs programData = do
+  -- log $ "handling: " <> s <> " " <> symbolNs
+  v <- lookupEvaledDef symbolNs s
+  case v of
+    Just defData -> pure defData
+    Nothing -> case lookupDef symbolNs s programData of
+      Just code -> evaluateNewDef code emptyScope symbolNs s programData
+      Nothing -> throw $ "Unknown operator: " <> symbolNs <> "/" <> s
+
+parseManualNs :: String -> Maybe (Tuple String String)
+parseManualNs s = do
+  idx <- String.indexOf (Pattern "/") s
+  let size = String.length s
+  if size >= 3 && idx > 0 && idx < (size - 1)
+    then case String.split (Pattern "/") s of
+      [ns, def] -> Just (Tuple ns def)
+      _ -> Nothing
+    else Nothing
+
 evaluateExpr :: CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
 evaluateExpr xs scope ns programData = case xs of
   CalcitNil -> pure xs
   CalcitBool _ -> pure xs
   CalcitNumber n -> pure (CalcitNumber n)
-  CalcitSymbol s -> case Map.lookup s coreNsDefs of
-    Just v -> pure v
-    Nothing -> case Map.lookup s scope of
+  CalcitSymbol s symbolNs -> case parseManualNs s of
+    Just (Tuple nsAlias def) -> case lookupNsTargetInImport ns nsAlias programData of
+      Just target -> evalSymbolFromProgram def scope target programData
+      Nothing -> throw $ "cannot find target " <> s
+    Nothing -> case Map.lookup s coreNsDefs of
       Just v -> pure v
-      Nothing -> do
-        v <- lookupEvaledDef ns s
-        case v of
-          Just defData -> pure defData
-          Nothing -> case lookupDef coreNs s programData of
-            Just code -> evaluateNewDef code emptyScope coreNs s programData
-            Nothing -> case lookupDef ns s programData of
-              Just code -> evaluateNewDef code emptyScope ns s programData
-              Nothing -> throw $ "Unknown operator: " <> ns <> "/" <> s
+      Nothing -> case lookupDef coreNs s programData of
+        Just code -> evaluateNewDef code emptyScope coreNs s programData
+        Nothing -> case Map.lookup s scope of
+          Just v -> pure v
+          Nothing -> case lookupDefTargetInImport symbolNs s programData of
+            Just target -> do
+              -- log $ "from imported ns: " <> target <> " " <> (show programData)
+              evalSymbolFromProgram s scope target programData
+            Nothing -> do
+              -- log $ "from local ns:" <> s
+              evalSymbolFromProgram s scope symbolNs programData
   CalcitKeyword _ -> pure xs
   CalcitString _ -> pure xs
   CalcitFn _ _ -> pure xs
@@ -59,7 +86,7 @@ evaluateExpr xs scope ns programData = case xs of
         CalcitSyntax _ f -> f (Array.drop 1 ys) scope evalFn
           where
             evalFn zs s2 = evaluateExpr zs s2 ns programData
-        CalcitSymbol s -> throw "cannot use symbol as function"
+        CalcitSymbol s _ -> throw "cannot use symbol as function"
         _ -> throw "Unknown type of operation"
   _ -> throw $ "Unexpected structure: " <> (show xs)
 
