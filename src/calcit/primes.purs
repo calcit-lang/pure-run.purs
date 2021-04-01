@@ -36,6 +36,7 @@ data CalcitData = CalcitNil
                  -- | CalcitAtom CalcitData
                  | CalcitSet (Set CalcitData)
                  | CalcitRecord String (Array String) (Array CalcitData)
+                 | CalcitMacro String (Array CalcitData -> Effect CalcitData)
                  | CalcitFn String (Array CalcitData -> Effect CalcitData)
                  | CalcitSyntax String (Array CalcitData -> CalcitScope -> FnEvalFn -> Effect CalcitData)
 
@@ -52,8 +53,9 @@ instance showCalcitData :: Show CalcitData where
   -- show (CalcitAtom a) = "TODO"
   show (CalcitSet xs) = "(TODO Set)"
   show (CalcitRecord name fields values) = "(TODO Record)"
-  show (CalcitFn _ _) = "(TODO Fn)"
-  show (CalcitSyntax _ _) = "(TODO Syntax)"
+  show (CalcitMacro name _) = "(TODO Macro" <> name <> ")"
+  show (CalcitFn name _) = "(TODO Fn " <> name <>  ")"
+  show (CalcitSyntax name _) = "(TODO Syntax " <> name <> ")"
 
 ednToCalcit :: CirruEdn -> String -> CalcitData
 ednToCalcit d ns = case d of
@@ -161,6 +163,10 @@ instance ordCalcitData :: Ord CalcitData where
       EQ -> compare values1 values2
   compare (CalcitRecord _ _ _) _ = LT
   compare _ (CalcitRecord _ _ _) = GT
+
+  compare (CalcitMacro name1 _) (CalcitMacro name2 _) = compare name1 name2 -- TODO inaccurate
+  compare (CalcitMacro name1 _) _  = LT
+  compare _ (CalcitMacro name1 _)  = GT
 
   compare (CalcitFn name1 _) (CalcitFn name2 _) = compare name1 name2 -- TODO inaccurate
   compare (CalcitFn name1 _) _  = LT

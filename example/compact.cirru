@@ -7,7 +7,7 @@
     |app.main $ {}
       :ns $ quote
         ns app.main $ :require
-          app.lib :refer $ v
+          app.lib :refer $ v m-inc m-inc-2 m-count
           app.lib :as lib
       :defs $ {}
         |main! $ quote
@@ -33,6 +33,9 @@
             echo "\"import" v
             echo "\"local" w
             echo "\"import ns" lib/v
+            echo "\"macro" $ m-inc 2
+            echo "\"quasi macro" $ m-inc-2 3
+            echo "\"quote splice" $ m-count (1 2 3 4)
         |fibo $ quote
           defn fibo (n) (; echo "\"calling fibo" n)
             if (&< n 2) 1 $ &+
@@ -45,5 +48,16 @@
       :ns $ quote (ns app.lib)
       :defs $ {}
         |v $ quote (def "\"TODO v" 1)
+        |m-inc $ quote
+          defmacro m-inc (x)
+            [] &+ v $ [] &+ x 1
+        |m-inc-2 $ quote
+          defmacro m-inc-2 (x)
+            quasiquote $ &+ (~ x)
+              &+ (~ x) 2
+        |m-count $ quote
+          defmacro m-count (xs)
+            quasiquote $ count
+              [] $ ~@ xs
       :proc $ quote ()
       :configs $ {}
