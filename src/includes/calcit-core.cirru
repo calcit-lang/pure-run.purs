@@ -35,5 +35,21 @@
         |def $ quote
           defmacro def (name v) v
 
+        |assert= $ quote
+          defmacro assert= (a b)
+            quasiquote
+              if (&= (~ a) (~ b)) nil
+                &let nil
+                  echo "|Left:   " (~ a)
+                  echo "|     <= " (quote (~ a))
+                  echo "|Right:  " (~ b)
+                  echo "|     <= " (quote (~ b))
+                  raise "|failed in assert="
+
+        |do $ quote
+          defmacro do (& xs)
+            quasiquote
+              &let nil (~@ xs)
+
       :proc $ quote ()
       :configs $ {}
