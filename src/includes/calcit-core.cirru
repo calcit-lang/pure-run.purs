@@ -46,6 +46,22 @@
                   echo "|     <= " (quote (~ b))
                   raise "|failed in assert="
 
+        |assert $ quote
+          defmacro assert (message expr)
+            quasiquote
+              if (~ expr) nil
+                do
+                  echo "|Failed:" (quote (~ expr))
+                  raise "|failed in assert"
+
+        |assert-detect $ quote
+          defmacro assert-detect (f v)
+            quasiquote
+              if ((~ f) (~ v)) nil
+                do
+                  echo "|Failed:" (quote (~ f)) (quote (~ v))
+                  raise "|failed in assert-detect"
+
         |do $ quote
           defmacro do (& xs)
             quasiquote

@@ -13,29 +13,15 @@
           |test-macro! $ {} (:type :expr) (:by |u0) (:at 1617341365958)
             :data $ {}
               |T $ {} (:type :leaf) (:by |u0) (:at 1617341365958) (:text |defn)
-              |j $ {} (:type :leaf) (:by |u0) (:at 1617341365958) (:text |test-macro!)
-              |r $ {} (:type :expr) (:by |u0) (:at 1617341365958)
+              |yr $ {} (:type :expr) (:by |u0) (:at 1617380238373)
                 :data $ {}
-              |v $ {} (:type :expr) (:by |u0) (:at 1617341573601)
-                :data $ {}
-                  |T $ {} (:type :leaf) (:by |u0) (:at 1617341574276) (:text |echo)
-                  |j $ {} (:type :leaf) (:by |u0) (:at 1617341577236) (:text "|\"Testing macro")
-              |x $ {} (:type :expr) (:by |u0) (:at 1617341578196)
-                :data $ {}
-                  |T $ {} (:type :leaf) (:by |u0) (:at 1617341578196) (:text |echo)
-                  |j $ {} (:type :leaf) (:by |u0) (:at 1617341578196) (:text "|\"macro")
-                  |r $ {} (:type :expr) (:by |u0) (:at 1617341578196)
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617380240228) (:text |assert)
+                  |j $ {} (:type :leaf) (:by |u0) (:at 1617380245947) (:text "|\"try assert")
+                  |r $ {} (:type :expr) (:by |u0) (:at 1617380247193)
                     :data $ {}
-                      |T $ {} (:type :leaf) (:by |u0) (:at 1617341578196) (:text |m-inc)
-                      |j $ {} (:type :leaf) (:by |u0) (:at 1617341578196) (:text |2)
-              |y $ {} (:type :expr) (:by |u0) (:at 1617341582845)
-                :data $ {}
-                  |T $ {} (:type :leaf) (:by |u0) (:at 1617341582845) (:text |echo)
-                  |j $ {} (:type :leaf) (:by |u0) (:at 1617341582845) (:text "|\"quasi macro")
-                  |r $ {} (:type :expr) (:by |u0) (:at 1617341582845)
-                    :data $ {}
-                      |T $ {} (:type :leaf) (:by |u0) (:at 1617341582845) (:text |m-inc-2)
-                      |j $ {} (:type :leaf) (:by |u0) (:at 1617341582845) (:text |3)
+                      |T $ {} (:type :leaf) (:by |u0) (:at 1617380249551) (:text |&=)
+                      |j $ {} (:type :leaf) (:by |u0) (:at 1617380249882) (:text |1)
+                      |r $ {} (:type :leaf) (:by |u0) (:at 1617380429962) (:text |1)
               |yT $ {} (:type :expr) (:by |u0) (:at 1617341586865)
                 :data $ {}
                   |T $ {} (:type :leaf) (:by |u0) (:at 1617341586865) (:text |echo)
@@ -49,6 +35,19 @@
                           |j $ {} (:type :leaf) (:by |u0) (:at 1617341586865) (:text |2)
                           |r $ {} (:type :leaf) (:by |u0) (:at 1617341586865) (:text |3)
                           |v $ {} (:type :leaf) (:by |u0) (:at 1617341586865) (:text |4)
+              |j $ {} (:type :leaf) (:by |u0) (:at 1617341365958) (:text |test-macro!)
+              |x $ {} (:type :expr) (:by |u0) (:at 1617341578196)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617341578196) (:text |echo)
+                  |j $ {} (:type :leaf) (:by |u0) (:at 1617341578196) (:text "|\"macro")
+                  |r $ {} (:type :expr) (:by |u0) (:at 1617341578196)
+                    :data $ {}
+                      |T $ {} (:type :leaf) (:by |u0) (:at 1617341578196) (:text |m-inc)
+                      |j $ {} (:type :leaf) (:by |u0) (:at 1617341578196) (:text |2)
+              |v $ {} (:type :expr) (:by |u0) (:at 1617341573601)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617341574276) (:text |echo)
+                  |j $ {} (:type :leaf) (:by |u0) (:at 1617341577236) (:text "|\"Testing macro")
               |yj $ {} (:type :expr) (:by |u0) (:at 1617341591231)
                 :data $ {}
                   |T $ {} (:type :leaf) (:by |u0) (:at 1617341591231) (:text |echo)
@@ -64,6 +63,28 @@
                         :data $ {}
                           |T $ {} (:type :leaf) (:by |u0) (:at 1617341591231) (:text |echo)
                           |j $ {} (:type :leaf) (:by |u0) (:at 1617341591231) (:text "|\"do 2")
+              |r $ {} (:type :expr) (:by |u0) (:at 1617341365958)
+                :data $ {}
+              |y $ {} (:type :expr) (:by |u0) (:at 1617341582845)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617341582845) (:text |echo)
+                  |j $ {} (:type :leaf) (:by |u0) (:at 1617341582845) (:text "|\"quasi macro")
+                  |r $ {} (:type :expr) (:by |u0) (:at 1617341582845)
+                    :data $ {}
+                      |T $ {} (:type :leaf) (:by |u0) (:at 1617341582845) (:text |m-inc-2)
+                      |j $ {} (:type :leaf) (:by |u0) (:at 1617341582845) (:text |3)
+              |yv $ {} (:type :expr) (:by |u0) (:at 1617380431427)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617380437196) (:text |assert-detect)
+                  |j $ {} (:type :expr) (:by |u0) (:at 1617380449919)
+                    :data $ {}
+                      |T $ {} (:type :leaf) (:by |u0) (:at 1617380453067) (:text |defn)
+                      |j $ {} (:type :leaf) (:by |u0) (:at 1617380454473) (:text |x)
+                      |r $ {} (:type :expr) (:by |u0) (:at 1617380455646)
+                        :data $ {}
+                          |T $ {} (:type :leaf) (:by |u0) (:at 1617380459006) (:text |x)
+                      |v $ {} (:type :leaf) (:by |u0) (:at 1617380892333) (:text |true)
+                  |r $ {} (:type :leaf) (:by |u0) (:at 1617380461168) (:text |true)
           |m-count $ {} (:type :expr) (:by |u0) (:at 1617264511404)
             :data $ {}
               |T $ {} (:type :leaf) (:by |u0) (:at 1617264514632) (:text |defmacro)

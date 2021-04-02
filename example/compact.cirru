@@ -13,6 +13,10 @@
             echo "\"quasi macro" $ m-inc-2 3
             echo "\"quote splice" $ m-count (1 2 3 4)
             echo "\"out" $ do (echo "\"do 1") (echo "\"do 2")
+            assert "\"try assert" $ &= 1 1
+            assert-detect
+              defn x (x) true
+              , true
         |m-count $ quote
           defmacro m-count (xs)
             quasiquote $ count
