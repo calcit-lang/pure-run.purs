@@ -90,7 +90,9 @@ fnNativeEq xs = do
   pure (CalcitBool (a1 == a2))
 
 calcitToString :: CalcitData -> String
-calcitToString x = show x
+calcitToString x = case x of
+  CalcitString s -> s
+  _ -> show x
 
 fnNativeEcho :: (Array CalcitData) -> Effect CalcitData
 fnNativeEcho xs = do
@@ -169,6 +171,12 @@ fnNativeConcat xs = case (xs !! 0) of
     log $ "a1: " <> (show a1)
     throw "expected list and function for concat"
 
+fnNativeRaise :: (Array CalcitData) -> Effect CalcitData
+fnNativeRaise xs = case (xs !! 0) of
+  Just (CalcitString s) -> throw s
+  Just a -> throw $ "unknown argument for raise" <> (show a)
+  Nothing -> throw "missing argument for raise"
+
 coreNsDefs :: Map.Map String CalcitData
 coreNsDefs = Map.union coreNsSyntaxes coreDefs
   where
@@ -186,4 +194,5 @@ coreNsDefs = Map.union coreNsSyntaxes coreDefs
     , (Tuple "foldl" (CalcitFn "foldl" fnNativeFoldl))
     , (Tuple "map" (CalcitFn "map" fnNativeMap))
     , (Tuple "concat" (CalcitFn "concat" fnNativeConcat))
+    , (Tuple "raise" (CalcitFn "raise" fnNativeRaise))
     ]

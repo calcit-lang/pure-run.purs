@@ -7,11 +7,13 @@ import Data.Array (zip, (!!))
 import Data.Array as Array
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Show (show)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
+import Effect.Console (log)
 import Effect.Exception (throw)
-import Prelude (bind, pure, (==), (||))
+import Prelude (bind, pure, (==), (||), discard, ($), (<>))
 
 
 -- | evaluate lines and return value of last line
@@ -66,7 +68,13 @@ syntaxDefmacro xs scope evalFn =
       CalcitList ys -> pure ys
       _ -> throw "macro args not list"
     argNames <- traverse extractArgName args
-    let f = \ys -> evaluateLines (Array.drop 2 xs) (Map.unions [(Map.fromFoldable (zip argNames ys)), scope]) evalFn
+    let f = (\ys ->
+      let bodyScope = Map.unions [(Map.fromFoldable (zip argNames ys)), scope]
+      in
+        do
+          -- log $ "bodyScope: " <> (show bodyScope)
+          evaluateLines (Array.drop 2 xs) bodyScope evalFn
+     )
     pure (CalcitMacro name f)
   where
     extractArgName :: CalcitData -> Effect String
@@ -96,11 +104,16 @@ syntaxNativeLet xs scope evalFn = do
           pure { k: s, v: v }
         _, _ -> throw "expected symbol in &let"
       else throw "expected pair length of 2"
+    Just CalcitNil ->
+       pure { k: "_", v: CalcitNil }
     Just _ -> throw "expected a pair"
     Nothing -> throw "expected pair in first argument"
-  v <- evalFn pair.v scope
-  let bodyScope = Map.insert pair.k v scope
-  evaluateLines (Array.drop 1 xs) bodyScope evalFn
+  if pair.k == "_"
+  then evaluateLines (Array.drop 1 xs) scope evalFn
+  else do
+    v <- evalFn pair.v scope
+    let bodyScope = Map.insert pair.k v scope
+    evaluateLines (Array.drop 1 xs) bodyScope evalFn
 
 syntaxComment :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
 syntaxComment _ _ _ = pure CalcitNil

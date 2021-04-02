@@ -84,6 +84,19 @@
                     :data $ {}
                       |T $ {} (:type :leaf) (:by |u0) (:at 1617263882702) (:text |m-inc-2)
                       |j $ {} (:type :leaf) (:by |u0) (:at 1617263883639) (:text |3)
+              |yyyyT $ {} (:type :expr) (:by |u0) (:at 1617333738453)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617333740452) (:text |assert=)
+                  |j $ {} (:type :expr) (:by |u0) (:at 1617334561915)
+                    :data $ {}
+                      |T $ {} (:type :leaf) (:by |u0) (:at 1617334563923) (:text |&-)
+                      |j $ {} (:type :leaf) (:by |u0) (:at 1617335153009) (:text |14)
+                      |r $ {} (:type :leaf) (:by |u0) (:at 1617334564780) (:text |1)
+                  |r $ {} (:type :expr) (:by |u0) (:at 1617334552309)
+                    :data $ {}
+                      |T $ {} (:type :leaf) (:by |u0) (:at 1617334559876) (:text |&+)
+                      |j $ {} (:type :leaf) (:by |u0) (:at 1617334555500) (:text |1)
+                      |r $ {} (:type :leaf) (:by |u0) (:at 1617334556346) (:text |2)
               |j $ {} (:type :leaf) (:by |u0) (:at 1616315478731) (:text |main!)
               |x $ {} (:type :expr) (:by |u0) (:at 1616914764140)
                 :data $ {}
