@@ -1,19 +1,17 @@
 
-module Calcit.Syntax where
+module Calcit.Builtin.Syntax where
 
 
 import Calcit.Primes (CalcitData(..), CalcitScope, FnEvalFn)
-import Data.Array (zip, (!!))
+import Data.Array ((!!))
 import Data.Array as Array
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.Show (show)
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
-import Effect.Console (log)
 import Effect.Exception (throw)
-import Prelude (bind, pure, (==), (||), discard, ($), (<>))
+import Prelude (bind, pure, (==), (||))
 
 
 -- | evaluate lines and return value of last line
