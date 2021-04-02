@@ -74,6 +74,9 @@
     |app.test-map $ {}
       :ns $ quote (ns app.test-map)
       :defs $ {}
+        |test-map! $ quote
+          defn test-map! () (echo "\"Testing map")
+            echo $ &{} :a 1 :b 2
       :proc $ quote ()
       :configs $ {}
     |app.test-fn $ {}
@@ -105,6 +108,7 @@
           app.test-macro :refer $ test-macro!
           app.test-symbol :refer $ test-symbol!
           app.test-bool :refer $ test-bool!
+          app.test-map :refer $ test-map!
       :defs $ {}
         |main! $ quote
           defn main! ()
@@ -116,6 +120,7 @@
             test-macro!
             test-symbol!
             test-bool!
+            test-map!
             &let
               a $ &+ 1 2
               assert= a 3

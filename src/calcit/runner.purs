@@ -2,6 +2,7 @@ module Calcit.Runner where
 
 import Calcit.Builtin.Bool (fnNativeAnd, fnNativeNot, fnNativeOr)
 import Calcit.Builtin.Effect (fnNativeEcho, fnNativeRaise)
+import Calcit.Builtin.HashMap (fnNativeHashMap)
 import Calcit.Builtin.List (fnNativeConcat, fnNativeCount, fnNativeFoldl, fnNativeList, fnNativeMap, fnNativeNth, fnNativeSlice)
 import Calcit.Builtin.Number (fnNativeAdd, fnNativeEq, fnNativeGt, fnNativeLt, fnNativeMinus)
 import Calcit.Builtin.Symbol (fnNativeGensym, fnNativeResetGensymIndex)
@@ -79,6 +80,7 @@ coreNsDefs = Map.union coreNsSyntaxes coreDefs
     , (Tuple "&and" (CalcitFn "&and" fnNativeAnd))
     , (Tuple "&or" (CalcitFn "&or" fnNativeOr))
     , (Tuple "not" (CalcitFn "not" fnNativeNot))
+    , (Tuple "&{}" (CalcitFn "&{}" fnNativeHashMap))
     ]
 
 evaluateExpr :: CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData

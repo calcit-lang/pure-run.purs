@@ -1,26 +1,29 @@
 
 module Calcit.Primes where
 
-import Data.Eq (class Eq, (==))
 import Data.Map
-import Data.Ord (class Ord, Ordering(..),compare)
-import Data.Semigroup ((<>))
-import Data.Show (class Show, show)
+
 import Cirru.Edn (CirruEdn(..))
 import Cirru.Node (CirruNode(..))
 import Data.Either (Either(..))
+import Data.Eq (class Eq, (==))
 import Data.Functor as Functor
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Number as Number
 import Data.Number.Format (toString)
+import Data.Ord (class Ord, Ordering(..), compare)
+import Data.Semigroup ((<>))
 import Data.Set (Set)
 import Data.Set as DataSet
+import Data.Show (class Show, show)
 import Data.String as String
 import Data.String.Regex (regex, test)
 import Data.String.Regex.Flags (noFlags)
+import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Prelude ((&&))
+import Prelude as Array
 
 type FnEvalFn = CalcitData -> CalcitScope -> Effect CalcitData
 
@@ -49,7 +52,8 @@ instance showCalcitData :: Show CalcitData where
   show (CalcitKeyword s) = ":" <> s
   show (CalcitString s) = "|" <> s -- TODO handle formatting with spaces
   show (CalcitList xs) = "([] " <> (String.joinWith " " (Functor.map show xs))  <> ")"
-  show (CalcitMap xs) = "(TODO Map)"
+  show (CalcitMap xs) = "({} " <> (String.joinWith " " (Array.map (\ (Tuple a b) ->
+    "(" <> (show a) <> " " <> (show b) <> ")") (Map.toUnfoldable xs))) <> ")"
   -- show (CalcitAtom a) = "TODO"
   show (CalcitSet xs) = "(TODO Set)"
   show (CalcitRecord name fields values) = "(TODO Record)"

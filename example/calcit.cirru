@@ -458,6 +458,26 @@
             |T $ {} (:type :leaf) (:by |u0) (:at 1617340999361) (:text |ns)
             |j $ {} (:type :leaf) (:by |u0) (:at 1617340999361) (:text |app.test-map)
         :defs $ {}
+          |test-map! $ {} (:type :expr) (:by |u0) (:at 1617387777764)
+            :data $ {}
+              |T $ {} (:type :leaf) (:by |u0) (:at 1617387777764) (:text |defn)
+              |j $ {} (:type :leaf) (:by |u0) (:at 1617387777764) (:text |test-map!)
+              |r $ {} (:type :expr) (:by |u0) (:at 1617387777764)
+                :data $ {}
+              |v $ {} (:type :expr) (:by |u0) (:at 1617387779748)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617387780571) (:text |echo)
+                  |j $ {} (:type :leaf) (:by |u0) (:at 1617387782572) (:text "|\"Testing map")
+              |x $ {} (:type :expr) (:by |u0) (:at 1617387783694)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617387784516) (:text |echo)
+                  |j $ {} (:type :expr) (:by |u0) (:at 1617387784792)
+                    :data $ {}
+                      |T $ {} (:type :leaf) (:by |u0) (:at 1617387786832) (:text |&{})
+                      |j $ {} (:type :leaf) (:by |u0) (:at 1617387788595) (:text |:a)
+                      |r $ {} (:type :leaf) (:by |u0) (:at 1617387788993) (:text |1)
+                      |v $ {} (:type :leaf) (:by |u0) (:at 1617387789818) (:text |:b)
+                      |x $ {} (:type :leaf) (:by |u0) (:at 1617387790218) (:text |2)
         :proc $ {} (:type :expr) (:by |u0) (:at 1617340999361)
           :data $ {}
         :configs $ {}
@@ -626,6 +646,13 @@
                     |r $ {} (:type :expr) (:by |u0) (:at 1617341087331)
                       :data $ {}
                         |T $ {} (:type :leaf) (:by |u0) (:at 1617341547014) (:text |test-math!)
+                |yv $ {} (:type :expr) (:by |u0) (:at 1617377891364)
+                  :data $ {}
+                    |j $ {} (:type :leaf) (:by |u0) (:at 1617387803360) (:text |app.test-map)
+                    |r $ {} (:type :leaf) (:by |u0) (:at 1617377891364) (:text |:refer)
+                    |v $ {} (:type :expr) (:by |u0) (:at 1617377891364)
+                      :data $ {}
+                        |j $ {} (:type :leaf) (:by |u0) (:at 1617387806230) (:text |test-map!)
         :defs $ {}
           |main! $ {} (:type :expr) (:by |u0) (:at 1616315475196)
             :data $ {}
@@ -689,6 +716,9 @@
               |xo $ {} (:type :expr) (:by |u0) (:at 1617341596068)
                 :data $ {}
                   |T $ {} (:type :leaf) (:by |u0) (:at 1617341598506) (:text |test-macro!)
+              |xwS $ {} (:type :expr) (:by |u0) (:at 1617387794465)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617387797711) (:text |test-map!)
               |yyxT $ {} (:type :expr) (:by |u0) (:at 1617208883507)
                 :data $ {}
                   |T $ {} (:type :leaf) (:by |u0) (:at 1617208883507) (:text |echo)
