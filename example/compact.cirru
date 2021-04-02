@@ -36,18 +36,22 @@
             echo "\"macro" $ m-inc 2
             echo "\"quasi macro" $ m-inc-2 3
             echo "\"quote splice" $ m-count (1 2 3 4)
+            echo "\"foldl" $ foldl ([] 1 2 3) 10 &+
+            echo "\"map" $ map ([] 1 2 3) inc
+            echo "\"concat" $ concat
+              [] ([] 1 2 3) ([] 4 5 6)
         |fibo $ quote
           defn fibo (n) (; echo "\"calling fibo" n)
             if (&< n 2) 1 $ &+
               fibo $ &- n 1
               fibo $ &- n 2
-        |w $ quote (def "\"TODO w" 10)
+        |w $ quote (def w 10)
       :proc $ quote ()
       :configs $ {}
     |app.lib $ {}
       :ns $ quote (ns app.lib)
       :defs $ {}
-        |v $ quote (def "\"TODO v" 1)
+        |v $ quote (def v 1)
         |m-inc $ quote
           defmacro m-inc (x)
             [] &+ v $ [] &+ x 1

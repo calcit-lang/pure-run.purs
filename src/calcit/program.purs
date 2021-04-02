@@ -17,8 +17,9 @@ import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Ref as Ref
-import Prelude (bind, pure, (==))
+import Prelude (bind, pure, (==), (<>))
 
+-- defRule: ns def
 data ImportRule = ImportNsRule String | ImportDefRule String String
 
 -- | information extracted from snapshot
@@ -32,7 +33,8 @@ type ProgramCodeData = Map.Map String ProgramFileData
 type EvalFn = CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
 
 instance showImportRule :: Show ImportRule where
-  show x = "TODO import"
+  show (ImportNsRule ns) = "(import ns: " <> ns <> ")"
+  show (ImportDefRule ns def) = "(import def: " <> ns <> " " <> def <> ")"
 
 -- | real program state
 programEvaledData :: Effect (Ref.Ref (Map.Map String (Map.Map String CalcitData)))
@@ -62,7 +64,7 @@ extractImportRule node ns = case node of
       _ -> Left { message: "unknown import rule", data: cirruToCalcit node ns }
     else Left { message: "expected import rule in length 3", data: cirruToCalcit node ns }
 
--- | TODO
+-- | parse (ns a.b (:require ...))
 extractImportMap :: CirruNode -> String -> Either CalcitFailure (Map.Map String ImportRule)
 extractImportMap node ns = case node of
   CirruLeaf s -> Left { message: "ns rule expects a list", data: cirruToCalcit node ns }
@@ -87,7 +89,6 @@ extractProgramData s =
         Nothing -> Left { message: "cannot find ns in map", data: CalcitNil }
       importMap <- extractImportMap fileInfo.ns ns
       let file = {
-        -- TODO parse from rules
         importMap: importMap,
         defs: Map.mapMaybe (\x -> Just (cirruToCalcit x ns)) fileInfo.defs
       }

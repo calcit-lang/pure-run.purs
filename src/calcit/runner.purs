@@ -1,5 +1,6 @@
 module Calcit.Runner where
 
+
 import Calcit.Builtin (coreNsDefs)
 import Calcit.Primes (CalcitData(..), CalcitScope, coreNs, emptyScope)
 import Calcit.Program (ProgramCodeData, extractProgramData, lookupDef, lookupDefTargetInImport, lookupEvaledDef, lookupNsTargetInImport, writeEvaledDef)
@@ -10,7 +11,7 @@ import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.String (Pattern(..), split)
+import Data.String (Pattern(..), contains, split)
 import Data.String as String
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
@@ -18,8 +19,10 @@ import Effect (Effect)
 import Effect.Console (log)
 import Effect.Exception (throw)
 import Node.Encoding (Encoding(..))
-import Node.FS.Sync (readTextFile)
-import Prelude (Unit, bind, discard, pure, show, ($), (<>), (<), (>), (&&), (-), (>=))
+import Node.FS.Sync (exists, readTextFile)
+import Node.Globals (__dirname)
+import Node.Path (concat)
+import Prelude (Unit, bind, discard, pure, show, unit, ($), (&&), (-), (<), (<>), (>), (>=))
 
 evaluateNewDef :: CalcitData -> CalcitScope -> String -> String -> ProgramCodeData -> Effect CalcitData
 evaluateNewDef xs scope ns def programData = do
@@ -106,6 +109,8 @@ evaluateExpr xs scope ns programData = case xs of
 
 loadSnapshotFile :: String -> Effect Snapshot
 loadSnapshotFile filepath = do
+  hasFile <- exists filepath
+  if hasFile then pure unit else throw $ filepath <> " does not exist"
   content <- readTextFile UTF8 filepath
   case parseCirruEdn content of
     Left nodes -> throw $ "failed to parse edn" <> filepath
@@ -125,7 +130,12 @@ loadCompactFile snapshot = do
       pure v
 
 coreFilepath :: String
-coreFilepath = "./src/includes/calcit-core.cirru"
+coreFilepath = concat [__dirname,
+  -- dirty hack since bundled js may have different paths
+  if contains (Pattern "pure-run.purs/output") __dirname
+  then "../../src/includes/calcit-core.cirru"
+  else "../src/includes/calcit-core.cirru"
+]
 
 extractNsDef :: String -> Effect { ns :: String, def :: String }
 extractNsDef s = case split (Pattern "/") s of
@@ -138,6 +148,7 @@ runCalcit filepath = do
   programData <- case extractProgramData programSnapshot of
     Left reason -> throw $ "Failed to extract program" <> (show reason)
     Right v -> pure v
+  log $ "loading core" <> __dirname <> " " <> coreFilepath
   coreSnapshot <- loadSnapshotFile coreFilepath
   coreData <- case extractProgramData coreSnapshot of
     Left reason -> throw $ "Failed to extract core" <> (show reason)

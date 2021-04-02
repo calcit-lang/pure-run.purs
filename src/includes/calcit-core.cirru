@@ -33,7 +33,7 @@
             slice xs 0 (dec (count xs))
 
         |def $ quote
-          defn def (name v) v
+          defmacro def (name v) v
 
       :proc $ quote ()
       :configs $ {}

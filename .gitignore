@@ -8,5 +8,6 @@
 /.purs*
 /.psa*
 /.spago
+dist/*
 
 .compact-inc.cirru
