@@ -3,6 +3,7 @@ module Calcit.Runner where
 import Calcit.Builtin.Effect (fnNativeEcho, fnNativeRaise)
 import Calcit.Builtin.List (fnNativeConcat, fnNativeCount, fnNativeFoldl, fnNativeList, fnNativeMap, fnNativeNth, fnNativeSlice)
 import Calcit.Builtin.Number (fnNativeAdd, fnNativeEq, fnNativeGt, fnNativeLt, fnNativeMinus)
+import Calcit.Builtin.Symbol (fnNativeGensym, fnNativeResetGensymIndex)
 import Calcit.Builtin.Syntax (coreNsSyntaxes)
 import Calcit.Primes (CalcitData(..), CalcitScope, coreNs, emptyScope)
 import Calcit.Program (ProgramCodeData, extractProgramData, lookupDef, lookupDefTargetInImport, lookupEvaledDef, lookupNsTargetInImport, writeEvaledDef)
@@ -72,6 +73,8 @@ coreNsDefs = Map.union coreNsSyntaxes coreDefs
     , (Tuple "map" (CalcitFn "map" fnNativeMap))
     , (Tuple "concat" (CalcitFn "concat" fnNativeConcat))
     , (Tuple "raise" (CalcitFn "raise" fnNativeRaise))
+    , (Tuple "gensym" (CalcitFn "gensym" fnNativeGensym))
+    , (Tuple "reset-gensym-index!" (CalcitFn "reset-gensym-index!" fnNativeResetGensymIndex))
     ]
 
 evaluateExpr :: CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
