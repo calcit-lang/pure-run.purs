@@ -59,6 +59,18 @@
       :defs $ {}
       :proc $ quote ()
       :configs $ {}
+    |app.test-bool $ {}
+      :ns $ quote (ns app.test-bool)
+      :defs $ {}
+        |test-bool! $ quote
+          defn test-bool! () (echo "\"Testing bool") (echo true)
+            echo $ &and true false
+            echo $ &and true true
+            echo $ &or false true
+            echo $ &or true true
+            echo (not true) (not false)
+      :proc $ quote ()
+      :configs $ {}
     |app.test-map $ {}
       :ns $ quote (ns app.test-map)
       :defs $ {}
@@ -92,6 +104,7 @@
           app.test-math :refer $ test-math!
           app.test-macro :refer $ test-macro!
           app.test-symbol :refer $ test-symbol!
+          app.test-bool :refer $ test-bool!
       :defs $ {}
         |main! $ quote
           defn main! ()
@@ -102,6 +115,7 @@
             test-math!
             test-macro!
             test-symbol!
+            test-bool!
             &let
               a $ &+ 1 2
               assert= a 3

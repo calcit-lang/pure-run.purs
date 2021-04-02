@@ -1,5 +1,6 @@
 module Calcit.Runner where
 
+import Calcit.Builtin.Bool (fnNativeAnd, fnNativeNot, fnNativeOr)
 import Calcit.Builtin.Effect (fnNativeEcho, fnNativeRaise)
 import Calcit.Builtin.List (fnNativeConcat, fnNativeCount, fnNativeFoldl, fnNativeList, fnNativeMap, fnNativeNth, fnNativeSlice)
 import Calcit.Builtin.Number (fnNativeAdd, fnNativeEq, fnNativeGt, fnNativeLt, fnNativeMinus)
@@ -75,6 +76,9 @@ coreNsDefs = Map.union coreNsSyntaxes coreDefs
     , (Tuple "raise" (CalcitFn "raise" fnNativeRaise))
     , (Tuple "gensym" (CalcitFn "gensym" fnNativeGensym))
     , (Tuple "reset-gensym-index!" (CalcitFn "reset-gensym-index!" fnNativeResetGensymIndex))
+    , (Tuple "&and" (CalcitFn "&and" fnNativeAnd))
+    , (Tuple "&or" (CalcitFn "&or" fnNativeOr))
+    , (Tuple "not" (CalcitFn "not" fnNativeNot))
     ]
 
 evaluateExpr :: CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
