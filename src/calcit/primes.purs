@@ -27,7 +27,7 @@ type FnEvalFn = CalcitData -> CalcitScope -> Effect CalcitData
 data CalcitData = CalcitNil
                  | CalcitBool Boolean
                  | CalcitNumber Number
-                 | CalcitSymbol String String
+                 | CalcitSymbol String String -- order: sym, ns
                  | CalcitKeyword String
                  | CalcitString String
                  -- TODO use sequence later

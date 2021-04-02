@@ -44,7 +44,7 @@ syntaxDefn xs scope evalFn =
       CalcitList ys -> pure ys
       _ -> throw "function args not list"
     argNames <- traverse extractArgName args
-    let f = \ys -> evaluateLines (Array.drop 2 xs) (Map.unions [(Map.fromFoldable (zip argNames ys)), scope]) evalFn
+    let f = \ys -> evaluateLines (Array.drop 2 xs) (Map.unions [(foldArgsToScope argNames ys), scope]) evalFn
     pure (CalcitFn name f)
   where
     extractArgName :: CalcitData -> Effect String
@@ -69,7 +69,7 @@ syntaxDefmacro xs scope evalFn =
       _ -> throw "macro args not list"
     argNames <- traverse extractArgName args
     let f = (\ys ->
-      let bodyScope = Map.unions [(Map.fromFoldable (zip argNames ys)), scope]
+      let bodyScope = Map.unions [(foldArgsToScope argNames ys), scope]
       in
         do
           -- log $ "bodyScope: " <> (show bodyScope)
@@ -81,6 +81,23 @@ syntaxDefmacro xs scope evalFn =
     extractArgName arg = case arg of
       CalcitSymbol s ns -> pure s
       _ -> throw "expected symbol"
+
+
+firstOrNil :: Array CalcitData -> CalcitData
+firstOrNil ys = case ys !! 0 of
+  Just y -> y
+  Nothing -> CalcitNil
+
+foldArgsToScope :: Array String -> Array CalcitData -> Map.Map String CalcitData
+foldArgsToScope args values = Map.fromFoldable (foldArgs args values [])
+
+foldArgs :: Array String -> Array CalcitData -> Array (Tuple String CalcitData) -> Array (Tuple String CalcitData)
+foldArgs args values acc = case (args !! 0), (args !! 1) of
+  Nothing, _ -> acc
+  Just "&", Just name -> Array.insert (Tuple name (CalcitList values)) acc
+  Just s, _ ->
+    foldArgs (Array.drop 1 args) (Array.drop 1 values) (Array.insert (Tuple s (firstOrNil values)) acc)
+
 
 syntaxIf :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
 syntaxIf xs scope evalFn = do

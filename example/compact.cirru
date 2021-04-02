@@ -40,13 +40,19 @@
             echo "\"map" $ map ([] 1 2 3) inc
             echo "\"concat" $ concat
               [] ([] 1 2 3) ([] 4 5 6)
-            assert= (&- 14 1) (&+ 1 2)
+            assert= (&- 4 1) (&+ 1 2)
+            &let (a 1) (echo "\"line 1") (echo "\"line 2") (echo "\"line of" a)
+            echo "\"out" $ do (echo "\"do 1") (echo "\"do 2")
+            echo-list 1 2 3 4
+            echo-list & $ [] 4 5 6 7
         |fibo $ quote
           defn fibo (n) (; echo "\"calling fibo" n)
             if (&< n 2) 1 $ &+
               fibo $ &- n 1
               fibo $ &- n 2
         |w $ quote (def w 10)
+        |echo-list $ quote
+          defn echo-list (& xs) (echo xs)
       :proc $ quote ()
       :configs $ {}
     |app.lib $ {}

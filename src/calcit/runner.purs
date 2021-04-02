@@ -56,6 +56,7 @@ evaluateExpr xs scope ns programData = case xs of
   CalcitNil -> pure xs
   CalcitBool _ -> pure xs
   CalcitNumber n -> pure (CalcitNumber n)
+  CalcitSymbol "&" _ -> pure xs -- special syntax does eval
   CalcitSymbol s symbolNs -> case parseManualNs s of
     Just (Tuple nsAlias def) -> case lookupNsTargetInImport ns nsAlias programData of
       Just target -> evalSymbolFromProgram def scope target programData
@@ -99,13 +100,22 @@ evaluateExpr xs scope ns programData = case xs of
 
         CalcitFn _ f -> do
           args <- traverse (\x -> evaluateExpr x scope ns programData) (Array.drop 1 ys)
-          f args
+          spreadedArgs <- spreadArgs args []
+          f spreadedArgs
         CalcitSyntax _ f -> f (Array.drop 1 ys) scope evalFn
           where
             evalFn zs s2 = evaluateExpr zs s2 ns programData
         CalcitSymbol s _ -> throw "cannot use symbol as function"
         _ -> throw "Unknown type of operation"
   _ -> throw $ "Unexpected structure: " <> (show xs)
+
+spreadArgs :: Array CalcitData -> Array CalcitData -> Effect (Array CalcitData)
+spreadArgs xs acc = case (xs !! 0), (xs !! 1) of
+  Nothing, _ -> pure acc
+  Just (CalcitSymbol "&" _), Just (CalcitList ys) -> pure (Array.concat [acc, ys])
+  Just (CalcitSymbol "&" _), Just a -> throw $ "cannot spread: " <> (show a)
+  Just (CalcitSymbol "&" _), Nothing -> throw "nothing to spread"
+  Just x, _ -> spreadArgs (Array.drop 1 xs) (Array.concat [acc, [x]])
 
 loadSnapshotFile :: String -> Effect Snapshot
 loadSnapshotFile filepath = do

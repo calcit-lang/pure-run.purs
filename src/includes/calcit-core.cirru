@@ -38,7 +38,7 @@
         |assert= $ quote
           defmacro assert= (a b)
             quasiquote
-              if (&= (~ a) (~ b)) (echo |equal (~ a) (~ b))
+              if (&= (~ a) (~ b)) nil
                 &let nil
                   echo "|Left:   " (~ a)
                   echo "|     <= " (quote (~ a))
@@ -47,7 +47,7 @@
                   raise "|failed in assert="
 
         |do $ quote
-          defmacro do ()
+          defmacro do (& xs)
             quasiquote
               &let nil (~@ xs)
 
