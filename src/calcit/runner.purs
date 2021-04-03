@@ -1,7 +1,12 @@
 module Calcit.Runner where
 
-
-import Calcit.Builtin (coreNsDefs)
+import Calcit.Builtin.Bool (fnNativeAnd, fnNativeNot, fnNativeOr)
+import Calcit.Builtin.Effect (fnNativeEcho, fnNativeRaise)
+import Calcit.Builtin.HashMap (fnNativeHashMap)
+import Calcit.Builtin.List (fnNativeConcat, fnNativeCount, fnNativeFoldl, fnNativeList, fnNativeMap, fnNativeNth, fnNativeSlice)
+import Calcit.Builtin.Number (fnNativeAdd, fnNativeEq, fnNativeGt, fnNativeLt, fnNativeMinus)
+import Calcit.Builtin.Symbol (fnNativeGensym, fnNativeResetGensymIndex)
+import Calcit.Builtin.Syntax (coreNsSyntaxes)
 import Calcit.Primes (CalcitData(..), CalcitScope, coreNs, emptyScope)
 import Calcit.Program (ProgramCodeData, extractProgramData, lookupDef, lookupDefTargetInImport, lookupEvaledDef, lookupNsTargetInImport, writeEvaledDef)
 import Calcit.Snapshot (Snapshot, loadSnapshotData)
@@ -23,6 +28,7 @@ import Node.FS.Sync (exists, readTextFile)
 import Node.Globals (__dirname)
 import Node.Path (concat)
 import Prelude (Unit, bind, discard, pure, show, unit, ($), (&&), (-), (<), (<>), (>), (>=))
+
 
 evaluateNewDef :: CalcitData -> CalcitScope -> String -> String -> ProgramCodeData -> Effect CalcitData
 evaluateNewDef xs scope ns def programData = do
@@ -50,6 +56,32 @@ parseManualNs s = do
       [ns, def] -> Just (Tuple ns def)
       _ -> Nothing
     else Nothing
+
+coreNsDefs :: Map.Map String CalcitData
+coreNsDefs = Map.union coreNsSyntaxes coreDefs
+  where
+    coreDefs = Map.fromFoldable [
+      (Tuple "&+" (CalcitFn "&+" fnNativeAdd))
+    , (Tuple "&-" (CalcitFn "&-" fnNativeMinus))
+    , (Tuple "&<" (CalcitFn "&<" fnNativeLt))
+    , (Tuple "&>" (CalcitFn "&>" fnNativeGt))
+    , (Tuple "&=" (CalcitFn "&=" fnNativeEq))
+    , (Tuple "echo" (CalcitFn "echo" fnNativeEcho))
+    , (Tuple "[]" (CalcitFn "[]" fnNativeList))
+    , (Tuple "nth" (CalcitFn "[]" fnNativeNth))
+    , (Tuple "count" (CalcitFn "count" fnNativeCount))
+    , (Tuple "slice" (CalcitFn "slice" fnNativeSlice))
+    , (Tuple "foldl" (CalcitFn "foldl" fnNativeFoldl))
+    , (Tuple "map" (CalcitFn "map" fnNativeMap))
+    , (Tuple "concat" (CalcitFn "concat" fnNativeConcat))
+    , (Tuple "raise" (CalcitFn "raise" fnNativeRaise))
+    , (Tuple "gensym" (CalcitFn "gensym" fnNativeGensym))
+    , (Tuple "reset-gensym-index!" (CalcitFn "reset-gensym-index!" fnNativeResetGensymIndex))
+    , (Tuple "&and" (CalcitFn "&and" fnNativeAnd))
+    , (Tuple "&or" (CalcitFn "&or" fnNativeOr))
+    , (Tuple "not" (CalcitFn "not" fnNativeNot))
+    , (Tuple "&{}" (CalcitFn "&{}" fnNativeHashMap))
+    ]
 
 evaluateExpr :: CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
 evaluateExpr xs scope ns programData = case xs of

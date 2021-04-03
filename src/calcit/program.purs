@@ -17,6 +17,7 @@ import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Ref as Ref
+import Effect.Unsafe (unsafePerformEffect)
 import Prelude (bind, pure, (==), (<>))
 
 -- defRule: ns def
@@ -37,8 +38,9 @@ instance showImportRule :: Show ImportRule where
   show (ImportDefRule ns def) = "(import def: " <> ns <> " " <> def <> ")"
 
 -- | real program state
-programEvaledData :: Effect (Ref.Ref (Map.Map String (Map.Map String CalcitData)))
-programEvaledData = Ref.new (Map.fromFoldable [])
+-- ditry https://wiki.haskell.org/Top_level_mutable_state
+programEvaledDataRef :: Ref.Ref (Map.Map String (Map.Map String CalcitData))
+programEvaledDataRef = unsafePerformEffect (Ref.new (Map.fromFoldable []))
 
 filterLeaf :: CirruNode -> Maybe String
 filterLeaf node = case node of
@@ -122,8 +124,7 @@ lookupNsTargetInImport ns name p = do
 
 lookupEvaledDef :: String -> String -> Effect (Maybe CalcitData)
 lookupEvaledDef ns def = do
-  programRef <- programEvaledData
-  program <- Ref.read programRef
+  program <- Ref.read programEvaledDataRef
   case Map.lookup ns program of
     Nothing -> pure Nothing
     Just defs -> case Map.lookup def defs of
@@ -132,13 +133,12 @@ lookupEvaledDef ns def = do
 
 writeEvaledDef :: String -> String -> CalcitData -> Effect Unit
 writeEvaledDef ns def v = do
-  programRef <- programEvaledData
-  program <- Ref.read programRef
+  program <- Ref.read programEvaledDataRef
   case Map.lookup ns program of
-    Nothing -> Ref.write newProgram programRef
+    Nothing -> Ref.write newProgram programEvaledDataRef
       where
         newProgram = Map.fromFoldable [Tuple ns (Map.fromFoldable [Tuple def v])]
-    Just defs -> Ref.write newProgram programRef
+    Just defs -> Ref.write newProgram programEvaledDataRef
       where
         newProgram = Map.insert ns (Map.insert def v defs) program
 
