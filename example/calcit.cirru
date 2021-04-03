@@ -140,6 +140,24 @@
                         :data $ {}
                           |T $ {} (:type :leaf) (:by |u0) (:at 1617341591231) (:text |echo)
                           |j $ {} (:type :leaf) (:by |u0) (:at 1617341591231) (:text "|\"do 2")
+              |yx $ {} (:type :expr) (:by |u0) (:at 1617473277660)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617473278186) (:text |echo)
+                  |j $ {} (:type :expr) (:by |u0) (:at 1617474065125)
+                    :data $ {}
+                      |T $ {} (:type :expr) (:by |u0) (:at 1617473278532)
+                        :data $ {}
+                          |T $ {} (:type :leaf) (:by |u0) (:at 1617473281177) (:text |macroexpand)
+                          |j $ {} (:type :expr) (:by |u0) (:at 1617473283934)
+                            :data $ {}
+                              |T $ {} (:type :leaf) (:by |u0) (:at 1617473296385) (:text |m-count)
+                              |j $ {} (:type :expr) (:by |u0) (:at 1617473296894)
+                                :data $ {}
+                                  |T $ {} (:type :leaf) (:by |u0) (:at 1617473298439) (:text |1)
+                                  |j $ {} (:type :leaf) (:by |u0) (:at 1617473298691) (:text |2)
+                                  |r $ {} (:type :leaf) (:by |u0) (:at 1617473298971) (:text |3)
+                      |D $ {} (:type :leaf) (:by |u0) (:at 1617474071299) (:text |format-to-lisp)
+                  |b $ {} (:type :leaf) (:by |u0) (:at 1617474091351) (:text "|\"macroexpand")
               |r $ {} (:type :expr) (:by |u0) (:at 1617341365958)
                 :data $ {}
               |y $ {} (:type :expr) (:by |u0) (:at 1617341582845)

@@ -34,6 +34,8 @@
             assert-detect
               defn x (x) true
               , true
+            echo "\"macroexpand" $ format-to-lisp
+              macroexpand $ m-count (1 2 3)
         |m-count $ quote
           defmacro m-count (xs)
             quasiquote $ count
