@@ -39,6 +39,7 @@ data CalcitData = CalcitNil
                  -- use UUID for comparing
                  | CalcitRef UUID (Ref CalcitData)
                  -- | TODO use sequence later
+                 | CalcitRecur (Array CalcitData)
                  | CalcitList (Array CalcitData)
                  | CalcitMap (Map CalcitData CalcitData)
                  | CalcitSet (Set CalcitData)
@@ -58,7 +59,8 @@ instance showCalcitData :: Show CalcitData where
   show (CalcitKeyword s) = ":" <> s
   show (CalcitString s) = "|" <> s -- TODO handle formatting with spaces
   show (CalcitRef uid a) = "(&ref " <> (UUID.toString uid) <> ")"
-  show (CalcitList xs) = "([] " <> (String.joinWith " " (Functor.map show xs))  <> ")"
+  show (CalcitRecur xs) = "(&recur " <> (String.joinWith " " (Functor.map show xs)) <> ")"
+  show (CalcitList xs) = "([] " <> (String.joinWith " " (Functor.map show xs)) <> ")"
   show (CalcitMap xs) = "({} " <> (String.joinWith " " (Array.map (\ (Tuple a b) ->
     "(" <> (show a) <> " " <> (show b) <> ")") (Map.toUnfoldable xs))) <> ")"
   show (CalcitSet xs) = "(TODO Set)"
@@ -113,6 +115,7 @@ instance eqCalcitData :: Eq CalcitData where
   eq (CalcitKeyword x) (CalcitKeyword y) = x == y
   eq (CalcitString x) (CalcitString y) = x == y
   eq (CalcitRef uid1 _) (CalcitRef uid2 _) = uid1 == uid2
+  eq (CalcitRecur xs) (CalcitRecur ys) = xs == ys
   eq (CalcitList x) (CalcitList y) = x == y
   eq (CalcitSet x) (CalcitSet y) = x == y
   eq (CalcitMap x) (CalcitMap y) = x == y
@@ -158,6 +161,10 @@ instance ordCalcitData :: Ord CalcitData where
   compare (CalcitRef uid1 _) (CalcitRef uid2 _) = compare uid2 uid2
   compare (CalcitRef x _) _                = LT
   compare _ (CalcitRef x _)                = GT
+
+  compare (CalcitRecur xs) (CalcitRecur ys) = compare xs ys
+  compare (CalcitRecur xs) _                = LT
+  compare _ (CalcitRecur xs)                = GT
 
   compare (CalcitList xs) (CalcitList ys) = compare xs ys
   compare (CalcitList xs) _               = LT

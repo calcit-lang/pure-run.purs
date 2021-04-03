@@ -8,6 +8,7 @@ import Data.Int (toNumber)
 import Data.Int as Int
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
+import Data.String as String
 import Data.Traversable (traverse)
 import Effect (Effect)
 import Effect.Console (log)
@@ -32,6 +33,7 @@ fnNativeNth xs = case (xs !! 0), (xs !! 1) of
 fnNativeCount :: (Array CalcitData) -> Effect CalcitData
 fnNativeCount xs = case (xs !! 0) of
   Just (CalcitList ys) -> pure (CalcitNumber (toNumber (length ys)))
+  Just (CalcitString s) -> pure (CalcitNumber (toNumber (String.length s)))
   Just _ -> throw "count expected a List"
   Nothing -> throw "count expected an argument"
 

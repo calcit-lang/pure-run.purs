@@ -24,3 +24,21 @@ fnNativeHashMap xs =
       Just a, Just b -> pure (Array.snoc acc (Tuple a b))
       Nothing, _ -> pure acc
       Just _, Nothing -> throw "&{} got odd arguments"
+
+-- TODO assoc
+
+-- TODO dissoc
+
+-- TODO merge
+
+-- TODO to-pairs
+
+-- TODO map-kv
+
+-- TODO map-maybe
+
+-- TODO keys
+
+-- TODO vals
+
+-- TODO pick-keys

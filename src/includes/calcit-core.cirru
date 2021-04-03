@@ -92,5 +92,57 @@
             quasiquote
               reset! (~ r) $ (~ f) (deref (~ r)) (~@ args)
 
+        |list? $ quote
+          defn list? (x)
+            &= :list (type-of x)
+
+        |string? $ quote
+          defn string? (x)
+            &= :string (type-of x)
+
+        |symbol? $ quote
+          defn symbol? (x)
+            &= :symbol (type-of x)
+
+        |empty? $ quote
+          defn empty? (xs)
+            if (&= xs nil) true
+              if (list? xs)
+                &= 0 (count xs)
+                if (string? xs)
+                  &= 0 (count xs)
+                  , false
+
+        |format-to-lisp $ quote
+          defn format-to-lisp (xs)
+            if (symbol? xs)
+              turn-string xs
+              if (list? xs)
+                &let
+                  v $ join-str (map xs format-to-lisp) "| "
+                  &str-concat (&str-concat "|(" v) "|)"
+                &str xs
+
+        |apply-args $ quote
+          defmacro apply-args (args f)
+            quasiquote
+              (~ f) (~@ args)
+
+        |fn $ quote
+          defmacro fn (args & body)
+            quasiquote
+              defn fn% (~ args) (~@ body)
+
+        |join-str $ quote
+          defn join-str (xs sep)
+            apply-args (| xs)
+              fn (acc ys)
+                if (empty? ys) acc
+                  recur
+                    if (empty? acc)
+                      first ys
+                      &str-concat (&str-concat acc sep) (first ys)
+                    rest ys
+
       :proc $ quote ()
       :configs $ {}

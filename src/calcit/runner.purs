@@ -6,7 +6,8 @@ import Calcit.Builtin.HashMap (fnNativeHashMap)
 import Calcit.Builtin.List (fnNativeConcat, fnNativeCount, fnNativeFoldl, fnNativeList, fnNativeMap, fnNativeNth, fnNativeSlice)
 import Calcit.Builtin.Number (fnNativeAdd, fnNativeEq, fnNativeGt, fnNativeLt, fnNativeMinus)
 import Calcit.Builtin.Ref (fnNativeDeref, fnNativeRef, fnNativeReset)
-import Calcit.Builtin.Symbol (fnNativeGensym, fnNativeResetGensymIndex)
+import Calcit.Builtin.String (fnNativeStr, fnNativeStrConcat, fnNativeTurnString)
+import Calcit.Builtin.Symbol (fnNativeGensym, fnNativeRecur, fnNativeResetGensymIndex, fnNativeTypeOf)
 import Calcit.Builtin.Syntax (coreNsSyntaxes)
 import Calcit.Primes (CalcitData(..), CalcitScope, coreNs, emptyScope)
 import Calcit.Program (ProgramCodeData, extractProgramData, lookupDef, lookupDefTargetInImport, lookupEvaledDef, lookupNsTargetInImport, writeEvaledDef)
@@ -30,7 +31,7 @@ import Node.Encoding (Encoding(..))
 import Node.FS.Sync (exists, readTextFile)
 import Node.Globals (__dirname)
 import Node.Path (concat)
-import Prelude (Unit, bind, discard, pure, show, unit, ($), (&&), (-), (<), (<>), (>), (>=))
+import Prelude (Unit, bind, discard, pure, show, unit, ($), (&&), (-), (<), (<>), (>), (>=), (==))
 
 
 evaluateNewDef :: CalcitData -> CalcitScope -> String -> String -> ProgramCodeData -> Effect CalcitData
@@ -64,6 +65,9 @@ parseManualNs s = do
 uidSeed :: UUID
 uidSeed = unsafePerformEffect (genUUID)
 
+builtinRecurFn :: CalcitData
+builtinRecurFn = CalcitFn "recur" (genv3UUID "faked_recur" uidSeed) fnNativeRecur
+
 coreNsDefs :: Map.Map String CalcitData
 coreNsDefs = Map.union coreNsSyntaxes coreDefs
   where
@@ -91,6 +95,11 @@ coreNsDefs = Map.union coreNsSyntaxes coreDefs
     , (Tuple "ref" (CalcitFn "ref" (genv3UUID "faked_ref" uidSeed) fnNativeRef))
     , (Tuple "deref" (CalcitFn "deref" (genv3UUID "faked_deref" uidSeed) fnNativeDeref))
     , (Tuple "reset!" (CalcitFn "reset!" (genv3UUID "faked_reset!" uidSeed) fnNativeReset))
+    , (Tuple "type-of" (CalcitFn "type-of" (genv3UUID "faked_type-of" uidSeed) fnNativeTypeOf))
+    , (Tuple "&str" (CalcitFn "&str" (genv3UUID "faked_&str" uidSeed) fnNativeStr))
+    , (Tuple "&str-concat" (CalcitFn "&str-concat" (genv3UUID "faked_&str-concat" uidSeed) fnNativeStrConcat))
+    , (Tuple "turn-string" (CalcitFn "turn-string" (genv3UUID "faked_turn-string" uidSeed) fnNativeTurnString))
+    , (Tuple "recur" builtinRecurFn)
     ]
 
 evaluateExpr :: CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
@@ -143,13 +152,23 @@ evaluateExpr xs scope ns programData = case xs of
         CalcitFn _ _ f -> do
           args <- traverse (\x -> evaluateExpr x scope ns programData) (Array.drop 1 ys)
           spreadedArgs <- spreadArgs args []
-          f spreadedArgs
+          if v == builtinRecurFn
+          then f spreadedArgs
+          else callFnWithRecur f spreadedArgs
         CalcitSyntax _ f -> f (Array.drop 1 ys) scope evalFn
           where
             evalFn zs s2 = evaluateExpr zs s2 ns programData
         CalcitSymbol s _ -> throw $ "cannot use symbol as function: " <> s
         _ -> throw "Unknown type of operation"
   _ -> throw $ "Unexpected structure: " <> (show xs)
+
+-- | handles tail recursion, only function need this. macros are not supposed to recurse
+callFnWithRecur :: (Array CalcitData -> Effect CalcitData) -> Array CalcitData -> Effect CalcitData
+callFnWithRecur f xs = do
+  ret <- f xs
+  case ret of
+    CalcitRecur args -> callFnWithRecur f args
+    _ -> pure ret
 
 spreadArgs :: Array CalcitData -> Array CalcitData -> Effect (Array CalcitData)
 spreadArgs xs acc = case (xs !! 0), (xs !! 1) of

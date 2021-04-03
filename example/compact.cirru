@@ -100,13 +100,25 @@
       :ns $ quote (ns app.test-fn)
       :defs $ {}
         |test-fn! $ quote
-          defn test-fn! ()
+          defn test-fn! () (echo "\"Testing fn")
             echo $ fibo 1
             echo $ fibo 5
             echo-list 1 2 3 4
             echo-list & $ [] 4 5 6 7
             assert= fibo fibo
             assert-not= fibo &+
+            echo $ recur 1 2 3
+            echo "\"recur result" $ re-sum 0 ([] 1 2 3 4)
+            echo "\"apply args" $ apply-args (1 2) &+
+            echo "\"apply args" $ apply-args
+              0 $ [] 1 2 3 4
+              defn TODO (acc xs)
+                if (empty? xs) acc $ recur
+                  &+ acc $ first xs
+                  rest xs
+            &let
+              f $ fn (a b) (&+ a b)
+              echo "\"fn:" $ f 3 4
         |fibo $ quote
           defn fibo (n) (; echo "\"calling fibo" n)
             if (&< n 2) 1 $ &+
@@ -114,6 +126,11 @@
               fibo $ &- n 2
         |echo-list $ quote
           defn echo-list (& xs) (echo xs)
+        |re-sum $ quote
+          defn re-sum (acc xs)
+            if (empty? xs) acc $ recur
+              &+ acc $ first xs
+              rest xs
       :proc $ quote ()
       :configs $ {}
     |app.main $ {}
@@ -129,6 +146,7 @@
           app.test-bool :refer $ test-bool!
           app.test-map :refer $ test-map!
           app.test-ref :refer $ test-ref!
+          app.test-string :refer $ test-string!
       :defs $ {}
         |main! $ quote
           defn main! ()
@@ -142,6 +160,7 @@
             test-bool!
             test-map!
             test-ref!
+            test-string!
             &let
               a $ &+ 1 2
               assert= a 3
@@ -154,6 +173,12 @@
     |app.test-string $ {}
       :ns $ quote (ns app.test-string)
       :defs $ {}
+        |test-string! $ quote
+          defn test-string! () (echo "\"Testing String")
+            echo "\"concat" $ &str-concat |a |b
+            echo "\"join" $ join-str ([] |a |b |c) |_
+            echo "\"format lisp" $ format-to-lisp
+              quote $ + 1 2
       :proc $ quote ()
       :configs $ {}
     |app.test-symbol $ {}
@@ -167,6 +192,8 @@
             reset-gensym-index!
             echo $ gensym "\"a"
             echo $ gensym "\"b"
+            echo $ type-of :a
+            echo $ type-of 1
       :proc $ quote ()
       :configs $ {}
     |app.test-math $ {}
