@@ -9,6 +9,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
+import Data.UUID (genUUID)
 import Effect (Effect)
 import Effect.Exception (throw)
 import Prelude (bind, pure, (==), (||))
@@ -43,7 +44,8 @@ syntaxDefn xs scope evalFn =
       _ -> throw "function args not list"
     argNames <- traverse extractArgName args
     let f = \ys -> evaluateLines (Array.drop 2 xs) (Map.unions [(foldArgsToScope argNames ys), scope]) evalFn
-    pure (CalcitFn name f)
+    uid <- genUUID
+    pure (CalcitFn name uid f)
   where
     extractArgName :: CalcitData -> Effect String
     extractArgName arg = case arg of
@@ -73,7 +75,8 @@ syntaxDefmacro xs scope evalFn =
           -- log $ "bodyScope: " <> (show bodyScope)
           evaluateLines (Array.drop 2 xs) bodyScope evalFn
      )
-    pure (CalcitMacro name f)
+    uid <- genUUID
+    pure (CalcitMacro name uid f)
   where
     extractArgName :: CalcitData -> Effect String
     extractArgName arg = case arg of

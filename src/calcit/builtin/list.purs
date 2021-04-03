@@ -50,7 +50,7 @@ fnNativeSlice xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
 
 fnNativeFoldl :: (Array CalcitData) -> Effect CalcitData
 fnNativeFoldl xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
-  Just (CalcitList ys), Just x0, Just (CalcitFn _ f) ->
+  Just (CalcitList ys), Just x0, Just (CalcitFn _ _ f) ->
     callItems x0 ys
     where
       callItems :: CalcitData -> Array CalcitData -> Effect CalcitData
@@ -67,7 +67,7 @@ fnNativeFoldl xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
 
 fnNativeMap :: (Array CalcitData) -> Effect CalcitData
 fnNativeMap xs = case (xs !! 0), (xs !! 1) of
-  Just (CalcitList ys), Just (CalcitFn _ f) -> do
+  Just (CalcitList ys), Just (CalcitFn _ _ f) -> do
     ret <- traverse (\y -> f [y]) ys
     pure (CalcitList ret)
   a1, a2 -> do

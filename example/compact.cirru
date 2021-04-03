@@ -4,6 +4,23 @@
     :modules $ [] |core
     :version |0.0.1
   :files $ {}
+    |app.test-ref $ {}
+      :ns $ quote (ns app.test-ref)
+      :defs $ {}
+        |test-ref! $ quote
+          defn test-ref! () (echo "\"Testing Ref")
+            &let
+              r $ ref 0
+              echo r
+              echo $ deref r
+              reset! r 2
+              echo $ deref r
+              swap! r inc
+              echo $ deref r
+              swap! r &+ 3
+              echo $ deref r
+      :proc $ quote ()
+      :configs $ {}
     |app.test-macro $ {}
       :ns $ quote (ns app.test-macro)
       :defs $ {}
@@ -88,6 +105,8 @@
             echo $ fibo 5
             echo-list 1 2 3 4
             echo-list & $ [] 4 5 6 7
+            assert= fibo fibo
+            assert-not= fibo &+
         |fibo $ quote
           defn fibo (n) (; echo "\"calling fibo" n)
             if (&< n 2) 1 $ &+
@@ -109,6 +128,7 @@
           app.test-symbol :refer $ test-symbol!
           app.test-bool :refer $ test-bool!
           app.test-map :refer $ test-map!
+          app.test-ref :refer $ test-ref!
       :defs $ {}
         |main! $ quote
           defn main! ()
@@ -121,6 +141,7 @@
             test-symbol!
             test-bool!
             test-map!
+            test-ref!
             &let
               a $ &+ 1 2
               assert= a 3

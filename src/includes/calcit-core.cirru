@@ -46,6 +46,18 @@
                   echo "|     <= " (quote (~ b))
                   raise "|failed in assert="
 
+        |assert-not= $ quote
+          defmacro assert-not= (a b)
+            quasiquote
+              if (&= (~ a) (~ b))
+                &let nil
+                  echo "|Left:   " (~ a)
+                  echo "|     <= " (quote (~ a))
+                  echo "|Right:  " (~ b)
+                  echo "|     <= " (quote (~ b))
+                  raise "|failed in assert="
+                , nil
+
         |assert $ quote
           defmacro assert (message expr)
             quasiquote
@@ -66,6 +78,19 @@
           defmacro do (& xs)
             quasiquote
               &let nil (~@ xs)
+
+        |not= $ quote
+          defn not= (a b)
+            not $ &= a b
+
+        |identity $ quote
+          defn identity (x) x
+
+
+        |swap! $ quote
+          defmacro swap! (r f & args)
+            quasiquote
+              reset! (~ r) $ (~ f) (deref (~ r)) (~@ args)
 
       :proc $ quote ()
       :configs $ {}
