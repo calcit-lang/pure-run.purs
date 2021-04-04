@@ -32,6 +32,7 @@ fnNativeHashMap xs =
 -- TODO merge
 
 -- TODO to-pairs
+-- TODO pairs-map
 
 -- TODO map-kv
 

@@ -30,3 +30,14 @@ fnNativeTurnString xs = case xs !! 0 of
   Just (CalcitSymbol s ns) -> pure (CalcitString s)
   Nothing -> throw "turn-string expected 1 argument"
   a -> throw $ "failed to turn string: " <> (show a)
+
+
+-- TODO split
+
+-- TODO trim
+
+-- TODO str-find
+
+-- TODO macro: starts-with? ends-with?
+
+-- TODO regex

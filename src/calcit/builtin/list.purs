@@ -9,6 +9,8 @@ import Data.Int as Int
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
 import Data.String as String
+import Data.String.CodeUnits (charAt)
+import Data.String.CodeUnits as CodeUnits
 import Data.Traversable (traverse)
 import Effect (Effect)
 import Effect.Console (log)
@@ -25,6 +27,11 @@ fnNativeNth xs = case (xs !! 0), (xs !! 1) of
     Nothing -> throw "nth expected index in int"
     Just index -> case ys !! index of
       Just x -> pure x
+      Nothing -> pure CalcitNil
+  Just (CalcitString s), Just (CalcitNumber n) -> case Int.fromNumber n of
+    Nothing -> throw "nth expected index in int"
+    Just index -> case charAt index s of
+      Just x -> pure (CalcitString (CodeUnits.singleton x))
       Nothing -> pure CalcitNil
   _, Just (CalcitNumber _) -> throw "nth expected list"
   Just (CalcitList _), _ -> throw "nth expected index"
@@ -88,3 +95,19 @@ fnNativeConcat xs = case (xs !! 0) of
   a1 -> do
     log $ "a1: " <> (show a1)
     throw "expected list and function for concat"
+
+
+-- TODO range
+-- TODO reverse
+-- TODO repeat
+-- TODO sort
+-- TODO take
+-- TODO drop
+-- TODO find
+-- TODO find-index
+-- TODO fold-compare
+-- TODO group-by
+-- TODO interleave
+-- TODO zip
+-- TODO map-maybe
+-- TODO mapcat
