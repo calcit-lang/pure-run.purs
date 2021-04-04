@@ -4,7 +4,7 @@ import Calcit.Builtin.Bool (fnNativeAnd, fnNativeNot, fnNativeOr)
 import Calcit.Builtin.Effect (fnNativeEcho, fnNativeRaise)
 import Calcit.Builtin.HashMap (fnNativeHashMap)
 import Calcit.Builtin.List (fnNativeConcat, fnNativeCount, fnNativeFoldl, fnNativeList, fnNativeMap, fnNativeNth, fnNativeSlice)
-import Calcit.Builtin.Number (fnNativeAdd, fnNativeEq, fnNativeGt, fnNativeLt, fnNativeMinus)
+import Calcit.Builtin.Number (fnNativeAdd, fnNativeEq, fnNativeGt, fnNativeLt, fnNativeMinus, fnNativeMod)
 import Calcit.Builtin.Ref (fnNativeDeref, fnNativeRef, fnNativeReset)
 import Calcit.Builtin.String (fnNativeStr, fnNativeStrConcat, fnNativeTurnString)
 import Calcit.Builtin.Symbol (fnNativeGensym, fnNativeRecur, fnNativeResetGensymIndex, fnNativeTypeOf)
@@ -100,6 +100,7 @@ coreNsDefs = Map.union coreNsSyntaxes coreDefs
     , (Tuple "&str-concat" (CalcitFn "&str-concat" (genv3UUID "faked_&str-concat" uidSeed) fnNativeStrConcat))
     , (Tuple "turn-string" (CalcitFn "turn-string" (genv3UUID "faked_turn-string" uidSeed) fnNativeTurnString))
     , (Tuple "recur" builtinRecurFn)
+    , (Tuple "mod" (CalcitFn "mod" (genv3UUID "faked_mod" uidSeed) fnNativeMod))
     ]
 
 evaluateExpr :: CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
@@ -159,7 +160,7 @@ evaluateExpr xs scope ns programData = case xs of
           where
             evalFn zs s2 = evaluateExpr zs s2 ns programData
         CalcitSymbol s _ -> throw $ "cannot use symbol as function: " <> s
-        _ -> throw "Unknown type of operation"
+        a -> throw $ "Unknown type of operation: " <> (show a)
   _ -> throw $ "Unexpected structure: " <> (show xs)
 
 -- | handles tail recursion, only function need this. macros are not supposed to recurse
@@ -175,7 +176,7 @@ spreadArgs xs acc = case (xs !! 0), (xs !! 1) of
   Nothing, _ -> pure acc
   Just (CalcitSymbol "&" _), Just (CalcitList ys) -> pure (Array.concat [acc, ys])
   Just (CalcitSymbol "&" _), Just a -> throw $ "cannot spread: " <> (show a)
-  Just (CalcitSymbol "&" _), Nothing -> throw "nothing to spread"
+  Just (CalcitSymbol "&" _), Nothing -> throw $ "nothing to spread: " <> (show xs)
   Just x, _ -> spreadArgs (Array.drop 1 xs) (Array.concat [acc, [x]])
 
 loadSnapshotFile :: String -> Effect Snapshot

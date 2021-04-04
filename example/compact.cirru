@@ -35,7 +35,14 @@
               defn x (x) true
               , true
             echo "\"macroexpand" $ format-to-lisp
-              macroexpand $ m-count (1 2 3)
+              macroexpand $ quote
+                m-count $ 1 2 3
+            echo "\"macroexpand" $ format-to-lisp
+              macroexpand $ quote
+                case-default (&+ 1 2) "\"else" (1 "\"one") (2 "\"two") (3 "\"three")
+            echo "\"case" $ case-default (&+ 1 2) "\"else" (1 "\"one") (2 "\"two") (3 "\"three")
+            echo "\"eval" $ eval
+              quote $ &+ 1 2
         |m-count $ quote
           defmacro m-count (xs)
             quasiquote $ count
@@ -203,8 +210,14 @@
       :defs $ {}
         |test-math! $ quote
           defn test-math! () (echo "\"Testing math")
-            echo $ &= 1 2
-            echo $ &= (&+ 1 1) 2
+            assert= false $ &= 1 2
+            assert= true $ &= (&+ 1 1) 2
             assert= (&- 4 1) (&+ 1 2)
+            assert= 2 $ mod 2 3
+            assert= 0 $ mod 2 2
+            assert= true $ odd? 3
+            assert= false $ odd? 4
+            assert= true $ even? 4
+            assert= false $ even? 3
       :proc $ quote ()
       :configs $ {}

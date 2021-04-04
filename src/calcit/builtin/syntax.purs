@@ -168,19 +168,29 @@ syntaxQuasiquote xs scope evalFn = case xs !! 0 of
           pure [CalcitList (Array.concat vv)]
       _ -> pure [c]
 
--- | usage `macroexpand (f 1 2)`, skipped quote call
+-- | usage `macroexpand (quote (f 1 2))`
 -- | notice: preprocess is not implemented here, so, NO macroexpand-all
 syntaxMacroexpand :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
 syntaxMacroexpand xs scope evalFn = case xs !! 0 of
-  Just (CalcitList ys) -> case ys !! 0 of
-    Nothing -> throw "macroexpand expected an expression"
-    Just y -> do
-      v <- evalFn y scope
-      case v of
-        CalcitMacro _ _ f -> f (Array.drop 1 ys)
-        _ -> throw "macroexpand expected macro operation"
-  Just a -> pure a
+  Just x0 -> do
+    e <- evalFn x0 scope
+    case e of
+      CalcitList ys -> case ys !! 0 of
+        Nothing -> throw "macroexpand expected an expression"
+        Just y -> do
+          v <- evalFn y scope
+          case v of
+            CalcitMacro _ _ f -> f (Array.drop 1 ys)
+            _ -> throw "macroexpand expected macro operation"
+      a -> pure a
   Nothing -> throw "macroexpand expected 1 argument"
+
+syntaxEval :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
+syntaxEval xs scope evalFn = case xs !! 0 of
+  Just x0 -> do
+    e <- evalFn x0 scope
+    evalFn e scope
+  Nothing -> throw "eval expected 1 argument"
 
 coreNsSyntaxes :: Map.Map String CalcitData
 coreNsSyntaxes = Map.fromFoldable [
@@ -193,4 +203,5 @@ coreNsSyntaxes = Map.fromFoldable [
 , (Tuple "&let" (CalcitSyntax ";" syntaxNativeLet))
 , (Tuple "--" (CalcitSyntax "--" syntaxComment))
 , (Tuple "macroexpand" (CalcitSyntax "macroexpand" syntaxMacroexpand))
+, (Tuple "eval" (CalcitSyntax "eval" syntaxEval))
 ]
