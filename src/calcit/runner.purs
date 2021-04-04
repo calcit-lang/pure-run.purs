@@ -2,7 +2,7 @@ module Calcit.Runner where
 
 import Calcit.Builtin.Bool (fnNativeAnd, fnNativeNot, fnNativeOr)
 import Calcit.Builtin.Effect (fnNativeEcho, fnNativeRaise)
-import Calcit.Builtin.HashMap (fnNativeHashMap)
+import Calcit.Builtin.HashMap (fnNativeAssoc, fnNativeDissoc, fnNativeHashMap)
 import Calcit.Builtin.List (fnNativeConcat, fnNativeCount, fnNativeFoldl, fnNativeList, fnNativeMap, fnNativeNth, fnNativeSlice)
 import Calcit.Builtin.Number (fnNativeAdd, fnNativeEq, fnNativeGt, fnNativeLt, fnNativeMinus, fnNativeMod)
 import Calcit.Builtin.Ref (fnNativeDeref, fnNativeRef, fnNativeReset)
@@ -101,6 +101,8 @@ coreNsDefs = Map.union coreNsSyntaxes coreDefs
     , (Tuple "turn-string" (CalcitFn "turn-string" (genv3UUID "faked_turn-string" uidSeed) fnNativeTurnString))
     , (Tuple "recur" builtinRecurFn)
     , (Tuple "mod" (CalcitFn "mod" (genv3UUID "faked_mod" uidSeed) fnNativeMod))
+    , (Tuple "assoc" (CalcitFn "assoc" (genv3UUID "faked_assoc" uidSeed) fnNativeAssoc))
+    , (Tuple "dissoc" (CalcitFn "dissoc" (genv3UUID "faked_dissoc" uidSeed) fnNativeDissoc))
     ]
 
 evaluateExpr :: CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData

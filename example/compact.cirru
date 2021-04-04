@@ -8,17 +8,17 @@
       :ns $ quote (ns app.test-ref)
       :defs $ {}
         |test-ref! $ quote
-          defn test-ref! () (echo "\"Testing Ref")
+          defn test-ref! () (echo "\"Testing ref")
             &let
               r $ ref 0
               echo r
-              echo $ deref r
+              assert= 0 $ deref r
               reset! r 2
-              echo $ deref r
+              assert= 2 $ deref r
               swap! r inc
-              echo $ deref r
+              assert= 3 $ deref r
               swap! r &+ 3
-              echo $ deref r
+              assert= 6 $ deref r
       :proc $ quote ()
       :configs $ {}
     |app.test-macro $ {}
@@ -26,22 +26,21 @@
       :defs $ {}
         |test-macro! $ quote
           defn test-macro! () (echo "\"Testing macro")
-            echo "\"macro" $ m-inc 2
-            echo "\"quasi macro" $ m-inc-2 3
-            echo "\"quote splice" $ m-count (1 2 3 4)
-            echo "\"out" $ do (echo "\"do 1") (echo "\"do 2")
+            assert= 4 $ m-inc 2
+            assert= 8 $ m-inc-2 3
+            assert= 4 $ m-count (1 2 3 4)
             assert "\"try assert" $ &= 1 1
             assert-detect
               defn x (x) true
               , true
-            echo "\"macroexpand" $ format-to-lisp
+            assert= "\"(count ([] 1 2 3))" $ format-to-lisp
               macroexpand $ quote
                 m-count $ 1 2 3
-            echo "\"macroexpand" $ format-to-lisp
+            assert= "\"(if (&= (&+ 1 2) 1) |one (case-default (&+ 1 2) |else (2 |two) (3 |three)))" $ format-to-lisp
               macroexpand $ quote
                 case-default (&+ 1 2) "\"else" (1 "\"one") (2 "\"two") (3 "\"three")
-            echo "\"case" $ case-default (&+ 1 2) "\"else" (1 "\"one") (2 "\"two") (3 "\"three")
-            echo "\"eval" $ eval
+            assert= "\"three" $ case-default (&+ 1 2) "\"else" (1 "\"one") (2 "\"two") (3 "\"three")
+            assert= 3 $ eval
               quote $ &+ 1 2
         |m-count $ quote
           defmacro m-count (xs)
@@ -61,23 +60,37 @@
       :ns $ quote (ns app.test-list)
       :defs $ {}
         |test-list! $ quote
-          defn test-list! () (echo "\"Testing List")
-            echo $ [] 1 2 3 4
-            echo $ nth ([] 1 2 3 4) 1
-            echo $ nth ([] 1 2 3 4) 10
-            echo $ first ([] 1 2 3 4)
-            echo $ last ([] 1 2 3 4)
-            echo $ count ([] 1 2 3 4)
-            echo $ &= 1 2
-            echo $ &= (&+ 1 1) 2
-            echo $ slice ([] 1 2 3 4) 1 3
-            echo $ rest ([] 1 2 3 4)
-            echo $ butlast ([] 1 2 3 4)
-            echo "\"foldl" $ foldl ([] 1 2 3) 10 &+
-            echo "\"map" $ map ([] 1 2 3) inc
-            echo "\"concat" $ concat
-              [] ([] 1 2 3) ([] 4 5 6)
+          defn test-list! () (echo "\"Testing list")
+            assert= ([] 1 2 3 4) ([] 1 2 3 4)
+            assert= 2 $ nth ([] 1 2 3 4) 1
+            assert= nil $ nth ([] 1 2 3 4) 10
+            assert= 1 $ first ([] 1 2 3 4)
+            assert= 4 $ last ([] 1 2 3 4)
+            assert= 4 $ count ([] 1 2 3 4)
+            assert= true $ &= (&+ 1 1) 2
+            assert=
+              slice ([] 1 2 3 4) 1 3
+              [] 2 3
+            assert=
+              rest $ [] 1 2 3 4
+              [] 2 3 4
+            assert=
+              butlast $ [] 1 2 3 4
+              [] 1 2 3
+            assert=
+              foldl ([] 1 2 3) 10 &+
+              , 16
+            assert=
+              map ([] 1 2 3) inc
+              [] 2 3 4
+            assert=
+              concat $ [] ([] 1 2 3) ([] 4 5 6)
+              [] 1 2 3 4 5 6
             assert= (&- 4 1) (&+ 1 2)
+            assert= ([] 1 :a 3 4)
+              assoc ([] 1 2 3 4) 1 :a
+            assert= ([] 1 3 4)
+              dissoc ([] 1 2 3 4) 1
       :proc $ quote ()
       :configs $ {}
     |app.lib $ {}
@@ -89,12 +102,14 @@
       :ns $ quote (ns app.test-bool)
       :defs $ {}
         |test-bool! $ quote
-          defn test-bool! () (echo "\"Testing bool") (echo true)
-            echo $ &and true false
-            echo $ &and true true
-            echo $ &or false true
-            echo $ &or true true
-            echo (not true) (not false)
+          defn test-bool! () (echo "\"Testing bool")
+            assert= "\"true" $ &str true
+            assert= false $ &and true false
+            assert= true $ &and true true
+            assert= true $ &or false true
+            assert= true $ &or true true
+            assert= false $ not true
+            assert= true $ not false
       :proc $ quote ()
       :configs $ {}
     |app.test-map $ {}
@@ -102,7 +117,11 @@
       :defs $ {}
         |test-map! $ quote
           defn test-map! () (echo "\"Testing map")
-            echo $ &{} :a 1 :b 2
+            assert= (&{} :a 1 :b 2) (&{} :a 1 :b 2)
+            &let
+              a $ &{} :a 1 :b 2
+              assert= (assoc a :c 2) (&{} :a 1 :b 2 :c 2)
+              assert= (dissoc a :a) (&{} :b 2)
       :proc $ quote ()
       :configs $ {}
     |app.test-fn $ {}
@@ -110,31 +129,31 @@
       :defs $ {}
         |test-fn! $ quote
           defn test-fn! () (echo "\"Testing fn")
-            echo $ fibo 1
-            echo $ fibo 5
+            assert= 1 $ fibo 1
+            assert= 8 $ fibo 5
             echo-list 1 2 3 4
             echo-list & $ [] 4 5 6 7
             assert= fibo fibo
             assert-not= fibo &+
             echo $ recur 1 2 3
-            echo "\"recur result" $ re-sum 0 ([] 1 2 3 4)
-            echo "\"apply args" $ apply-args (1 2) &+
-            echo "\"apply args" $ apply-args
+            assert= 10 $ re-sum 0 ([] 1 2 3 4)
+            assert= 3 $ apply-args (1 2) &+
+            assert= 10 $ apply-args
               0 $ [] 1 2 3 4
-              defn TODO (acc xs)
+              fn (acc xs)
                 if (empty? xs) acc $ recur
                   &+ acc $ first xs
                   rest xs
             &let
               f $ fn (a b) (&+ a b)
-              echo "\"fn:" $ f 3 4
+              assert= 7 $ f 3 4
         |fibo $ quote
           defn fibo (n) (; echo "\"calling fibo" n)
             if (&< n 2) 1 $ &+
               fibo $ &- n 1
               fibo $ &- n 2
         |echo-list $ quote
-          defn echo-list (& xs) (echo xs)
+          defn echo-list (& xs) (echo "\"echo:" xs)
         |re-sum $ quote
           defn re-sum (acc xs)
             if (empty? xs) acc $ recur
@@ -158,24 +177,13 @@
           app.test-string :refer $ test-string!
       :defs $ {}
         |main! $ quote
-          defn main! ()
-            echo $ &+ 1 1
-            echo "\"This is a demo"
-            test-fn!
-            test-list!
-            test-math!
-            test-macro!
-            test-symbol!
-            test-bool!
-            test-map!
-            test-ref!
-            test-string!
+          defn main! () (test-fn!) (test-list!) (test-math!) (test-macro!) (test-symbol!) (test-bool!) (test-map!) (test-ref!) (test-string!)
             &let
               a $ &+ 1 2
               assert= a 3
-            echo "\"import" v
-            echo "\"local" local-value
-            echo "\"import ns" lib-macro/v
+            assert= 1 v
+            assert= 10 local-value
+            assert= 1 lib-macro/v
         |local-value $ quote (def local-value 10)
       :proc $ quote ()
       :configs $ {}
@@ -184,9 +192,9 @@
       :defs $ {}
         |test-string! $ quote
           defn test-string! () (echo "\"Testing String")
-            echo "\"concat" $ &str-concat |a |b
-            echo "\"join" $ join-str ([] |a |b |c) |_
-            echo "\"format lisp" $ format-to-lisp
+            assert= |ab $ &str-concat |a |b
+            assert= "\"a_b_c" $ join-str ([] |a |b |c) |_
+            assert= "\"(+ 1 2)" $ format-to-lisp
               quote $ + 1 2
       :proc $ quote ()
       :configs $ {}
@@ -194,15 +202,15 @@
       :ns $ quote (ns app.test-symbol)
       :defs $ {}
         |test-symbol! $ quote
-          defn test-symbol! () (echo "\"Testing symbol")
-            echo $ gensym "\"a"
-            echo $ gensym "\"b"
-            echo $ gensym
+          defn test-symbol! () (echo "\"Testing symbol") (reset-gensym-index!)
+            assert= 'a__1 $ gensym "\"a"
+            assert= 'b__2 $ gensym "\"b"
+            assert= 'G__3 $ gensym
             reset-gensym-index!
-            echo $ gensym "\"a"
-            echo $ gensym "\"b"
-            echo $ type-of :a
-            echo $ type-of 1
+            assert= 'a__1 $ gensym "\"a"
+            assert= 'b__2 $ gensym "\"b"
+            assert= :keyword $ type-of :a
+            assert= :number $ type-of 1
       :proc $ quote ()
       :configs $ {}
     |app.test-math $ {}
