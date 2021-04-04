@@ -8,6 +8,9 @@ import Data.Int (toNumber)
 import Data.Int as Int
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
+import Data.String as String
+import Data.String.CodeUnits (charAt)
+import Data.String.CodeUnits as CodeUnits
 import Data.Traversable (traverse)
 import Effect (Effect)
 import Effect.Console (log)
@@ -25,6 +28,11 @@ fnNativeNth xs = case (xs !! 0), (xs !! 1) of
     Just index -> case ys !! index of
       Just x -> pure x
       Nothing -> pure CalcitNil
+  Just (CalcitString s), Just (CalcitNumber n) -> case Int.fromNumber n of
+    Nothing -> throw "nth expected index in int"
+    Just index -> case charAt index s of
+      Just x -> pure (CalcitString (CodeUnits.singleton x))
+      Nothing -> pure CalcitNil
   _, Just (CalcitNumber _) -> throw "nth expected list"
   Just (CalcitList _), _ -> throw "nth expected index"
   _, _ -> throw "failed call nth"
@@ -32,6 +40,7 @@ fnNativeNth xs = case (xs !! 0), (xs !! 1) of
 fnNativeCount :: (Array CalcitData) -> Effect CalcitData
 fnNativeCount xs = case (xs !! 0) of
   Just (CalcitList ys) -> pure (CalcitNumber (toNumber (length ys)))
+  Just (CalcitString s) -> pure (CalcitNumber (toNumber (String.length s)))
   Just _ -> throw "count expected a List"
   Nothing -> throw "count expected an argument"
 
@@ -50,7 +59,7 @@ fnNativeSlice xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
 
 fnNativeFoldl :: (Array CalcitData) -> Effect CalcitData
 fnNativeFoldl xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
-  Just (CalcitList ys), Just x0, Just (CalcitFn _ f) ->
+  Just (CalcitList ys), Just x0, Just (CalcitFn _ _ f) ->
     callItems x0 ys
     where
       callItems :: CalcitData -> Array CalcitData -> Effect CalcitData
@@ -67,7 +76,7 @@ fnNativeFoldl xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
 
 fnNativeMap :: (Array CalcitData) -> Effect CalcitData
 fnNativeMap xs = case (xs !! 0), (xs !! 1) of
-  Just (CalcitList ys), Just (CalcitFn _ f) -> do
+  Just (CalcitList ys), Just (CalcitFn _ _ f) -> do
     ret <- traverse (\y -> f [y]) ys
     pure (CalcitList ret)
   a1, a2 -> do
@@ -86,3 +95,19 @@ fnNativeConcat xs = case (xs !! 0) of
   a1 -> do
     log $ "a1: " <> (show a1)
     throw "expected list and function for concat"
+
+
+-- TODO range
+-- TODO reverse
+-- TODO repeat
+-- TODO sort
+-- TODO take
+-- TODO drop
+-- TODO find
+-- TODO find-index
+-- TODO fold-compare
+-- TODO group-by
+-- TODO interleave
+-- TODO zip
+-- TODO map-maybe
+-- TODO mapcat

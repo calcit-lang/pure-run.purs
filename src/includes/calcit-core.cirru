@@ -43,15 +43,27 @@
                   echo "|Left:   " (~ a)
                   echo "|     <= " (quote (~ a))
                   echo "|Right:  " (~ b)
-                  echo "|     <= " (quote (~ b))
+                  echo "|     <= " $ format-to-lisp (quote (~ b))
                   raise "|failed in assert="
+
+        |assert-not= $ quote
+          defmacro assert-not= (a b)
+            quasiquote
+              if (&= (~ a) (~ b))
+                &let nil
+                  echo "|Left:   " (~ a)
+                  echo "|     <= " (quote (~ a))
+                  echo "|Right:  " (~ b)
+                  echo "|     <= " $ format-to-lisp (quote (~ b))
+                  raise "|failed in assert="
+                , nil
 
         |assert $ quote
           defmacro assert (message expr)
             quasiquote
               if (~ expr) nil
                 do
-                  echo "|Failed:" (quote (~ expr))
+                  echo "|Failed:" $ format-to-lisp (quote (~ expr))
                   raise "|failed in assert"
 
         |assert-detect $ quote
@@ -66,6 +78,97 @@
           defmacro do (& xs)
             quasiquote
               &let nil (~@ xs)
+
+        |not= $ quote
+          defn not= (a b)
+            not $ &= a b
+
+        |identity $ quote
+          defn identity (x) x
+
+
+        |swap! $ quote
+          defmacro swap! (r f & args)
+            quasiquote
+              reset! (~ r) $ (~ f) (deref (~ r)) (~@ args)
+
+        |list? $ quote
+          defn list? (x)
+            &= :list (type-of x)
+
+        |string? $ quote
+          defn string? (x)
+            &= :string (type-of x)
+
+        |symbol? $ quote
+          defn symbol? (x)
+            &= :symbol (type-of x)
+
+        |empty? $ quote
+          defn empty? (xs)
+            if (&= xs nil) true
+              if (list? xs)
+                &= 0 (count xs)
+                if (string? xs)
+                  &= 0 (count xs)
+                  , false
+
+        |format-to-lisp $ quote
+          defn format-to-lisp (xs)
+            if (symbol? xs)
+              turn-string xs
+              if (list? xs)
+                &let
+                  v $ join-str (map xs format-to-lisp) "| "
+                  &str-concat (&str-concat "|(" v) "|)"
+                &str xs
+
+        |apply-args $ quote
+          defmacro apply-args (args f)
+            quasiquote
+              (~ f) (~@ args)
+
+        |fn $ quote
+          defmacro fn (args & body)
+            quasiquote
+              defn fn% (~ args) (~@ body)
+
+        |join-str $ quote
+          defn join-str (xs sep)
+            apply-args (| xs)
+              fn (acc ys)
+                if (empty? ys) acc
+                  recur
+                    if (empty? acc)
+                      first ys
+                      &str-concat (&str-concat acc sep) (first ys)
+                    rest ys
+
+        |odd? $ quote
+          defn odd? (n)
+            &= 1 (mod n 2)
+
+        |even? $ quote
+          defn even? (n)
+            &= 0 (mod n 2)
+
+        |case-default $ quote
+          defmacro case-default (v r0 & xs)
+            ; "TODO v should only eval once"
+            if (empty? xs)
+              quasiquote (~ r0)
+              &let
+                l0 $ first xs
+                assert "|expected 2 items in pair" $ &= 2 (count l0)
+                &let
+                  v1 $ first l0
+                  &let
+                    r1 $ last l0
+                    quasiquote
+                      if
+                        &= (~ v) (~ v1)
+                        ~ r1
+                        case-default (~ v) (~ r0) (~@ (rest xs))
 
       :proc $ quote ()
       :configs $ {}

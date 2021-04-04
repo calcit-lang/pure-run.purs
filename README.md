@@ -18,6 +18,12 @@ pure-run compact.cirru
 
 Notice that `compact.cirru` is generated from [calcit-editor](https://github.com/Cirru/calcit-editor). It could also be written manually by following the format. Find an example in [`example/compact.cirru`](example/compact.cirru).
 
+Features:
+
+* some basic math, string, array.
+* tail recursion with `recur`.
+* some hygienic macros.
+
 ### Development
 
 Dependencies: PureScript, spago, nodejs, yarn.

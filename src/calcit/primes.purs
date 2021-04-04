@@ -21,7 +21,10 @@ import Data.String as String
 import Data.String.Regex (regex, test)
 import Data.String.Regex.Flags (noFlags)
 import Data.Tuple (Tuple(..))
+import Data.UUID (UUID)
+import Data.UUID as UUID
 import Effect (Effect)
+import Effect.Ref (Ref)
 import Prelude ((&&))
 import Prelude as Array
 
@@ -33,14 +36,18 @@ data CalcitData = CalcitNil
                  | CalcitSymbol String String -- order: sym, ns
                  | CalcitKeyword String
                  | CalcitString String
-                 -- TODO use sequence later
+                 -- use UUID for comparing
+                 | CalcitRef UUID (Ref CalcitData)
+                 -- | TODO use sequence later
+                 | CalcitRecur (Array CalcitData)
                  | CalcitList (Array CalcitData)
                  | CalcitMap (Map CalcitData CalcitData)
-                 -- | CalcitAtom CalcitData
                  | CalcitSet (Set CalcitData)
                  | CalcitRecord String (Array String) (Array CalcitData)
-                 | CalcitMacro String (Array CalcitData -> Effect CalcitData)
-                 | CalcitFn String (Array CalcitData -> Effect CalcitData)
+                 | CalcitMacro String UUID (Array CalcitData -> Effect CalcitData)
+                 -- use UUID as name for comparing
+                 | CalcitFn String UUID (Array CalcitData -> Effect CalcitData)
+                 -- | syntaxes are static, use name as identity
                  | CalcitSyntax String (Array CalcitData -> CalcitScope -> FnEvalFn -> Effect CalcitData)
 
 instance showCalcitData :: Show CalcitData where
@@ -51,15 +58,16 @@ instance showCalcitData :: Show CalcitData where
   show (CalcitSymbol s ns) = "'" <> s
   show (CalcitKeyword s) = ":" <> s
   show (CalcitString s) = "|" <> s -- TODO handle formatting with spaces
-  show (CalcitList xs) = "([] " <> (String.joinWith " " (Functor.map show xs))  <> ")"
+  show (CalcitRef uid a) = "(&ref " <> (UUID.toString uid) <> ")"
+  show (CalcitRecur xs) = "(&recur " <> (String.joinWith " " (Functor.map show xs)) <> ")"
+  show (CalcitList xs) = "([] " <> (String.joinWith " " (Functor.map show xs)) <> ")"
   show (CalcitMap xs) = "({} " <> (String.joinWith " " (Array.map (\ (Tuple a b) ->
     "(" <> (show a) <> " " <> (show b) <> ")") (Map.toUnfoldable xs))) <> ")"
-  -- show (CalcitAtom a) = "TODO"
   show (CalcitSet xs) = "(TODO Set)"
   show (CalcitRecord name fields values) = "(TODO Record)"
-  show (CalcitMacro name _) = "(TODO Macro" <> name <> ")"
-  show (CalcitFn name _) = "(TODO Fn " <> name <>  ")"
-  show (CalcitSyntax name _) = "(TODO Syntax " <> name <> ")"
+  show (CalcitMacro name uid _) = "(&macro" <> name <> ")"
+  show (CalcitFn name uid _) = "(&fn " <> name <> ")"
+  show (CalcitSyntax name _) = "(&syntax " <> name <> ")"
 
 ednToCalcit :: CirruEdn -> String -> CalcitData
 ednToCalcit d ns = case d of
@@ -106,13 +114,17 @@ instance eqCalcitData :: Eq CalcitData where
   eq (CalcitSymbol x xNs) (CalcitSymbol y yNs) = x == y -- && xNs == yNs
   eq (CalcitKeyword x) (CalcitKeyword y) = x == y
   eq (CalcitString x) (CalcitString y) = x == y
+  eq (CalcitRef uid1 _) (CalcitRef uid2 _) = uid1 == uid2
+  eq (CalcitRecur xs) (CalcitRecur ys) = xs == ys
   eq (CalcitList x) (CalcitList y) = x == y
   eq (CalcitSet x) (CalcitSet y) = x == y
   eq (CalcitMap x) (CalcitMap y) = x == y
   eq (CalcitRecord name1 fields1 values1) (CalcitRecord name2 fields2 values2) = name1 == name2 &&
     fields1 == fields2 && values1 == values2
-  eq (CalcitFn name1 _) (CalcitFn name2 _) = name1 == name2 -- TODO inaccurate
-  eq (CalcitSyntax name1 _) (CalcitSyntax name2 _) = name1 == name2 -- TODO skip fn comparing
+  eq (CalcitMacro name1 uid1 _) (CalcitFn name2 uid2 _) = uid1 == uid2
+  eq (CalcitFn name1 uid1 _) (CalcitFn name2 uid2 _) = uid1 == uid2
+  -- | use syntax name for identity
+  eq (CalcitSyntax name1 _) (CalcitSyntax name2 _) = name1 == name2
 
   eq _ _ = false
 
@@ -146,6 +158,14 @@ instance ordCalcitData :: Ord CalcitData where
   compare (CalcitString x) _                = LT
   compare _ (CalcitString x)                = GT
 
+  compare (CalcitRef uid1 _) (CalcitRef uid2 _) = compare uid2 uid2
+  compare (CalcitRef x _) _                = LT
+  compare _ (CalcitRef x _)                = GT
+
+  compare (CalcitRecur xs) (CalcitRecur ys) = compare xs ys
+  compare (CalcitRecur xs) _                = LT
+  compare _ (CalcitRecur xs)                = GT
+
   compare (CalcitList xs) (CalcitList ys) = compare xs ys
   compare (CalcitList xs) _               = LT
   compare _ (CalcitList xs)               = GT
@@ -168,13 +188,13 @@ instance ordCalcitData :: Ord CalcitData where
   compare (CalcitRecord _ _ _) _ = LT
   compare _ (CalcitRecord _ _ _) = GT
 
-  compare (CalcitMacro name1 _) (CalcitMacro name2 _) = compare name1 name2 -- TODO inaccurate
-  compare (CalcitMacro name1 _) _  = LT
-  compare _ (CalcitMacro name1 _)  = GT
+  compare (CalcitMacro name1 uid1 _) (CalcitMacro name2 uid2 _) = compare uid1 uid2 -- TODO inaccurate
+  compare (CalcitMacro name uid _) _  = LT
+  compare _ (CalcitMacro name uid _)  = GT
 
-  compare (CalcitFn name1 _) (CalcitFn name2 _) = compare name1 name2 -- TODO inaccurate
-  compare (CalcitFn name1 _) _  = LT
-  compare _ (CalcitFn name1 _)  = GT
+  compare (CalcitFn name1 uid1 _) (CalcitFn name2 uid2 _) = compare uid1 uid2
+  compare (CalcitFn name uid _) _  = LT
+  compare _ (CalcitFn name uid _)  = GT
 
   compare (CalcitSyntax name1 _) (CalcitSyntax name2 _) = compare name1 name2 -- skip fn comparing
 

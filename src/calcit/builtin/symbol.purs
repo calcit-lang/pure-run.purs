@@ -44,3 +44,26 @@ fnNativeResetGensymIndex :: (Array CalcitData) -> Effect CalcitData
 fnNativeResetGensymIndex xs = do
   Ref.write 0 symbolGenCounterRef
   pure CalcitNil
+
+fnNativeTypeOf :: (Array CalcitData) -> Effect CalcitData
+fnNativeTypeOf xs = case xs !! 0 of
+  Nothing -> throw "type-of expected 1 argument"
+  Just x -> case x of
+    CalcitNil -> pure (CalcitKeyword "nil")
+    CalcitBool _ -> pure (CalcitKeyword "bool")
+    CalcitNumber _ -> pure (CalcitKeyword "number")
+    CalcitSymbol _ _ -> pure (CalcitKeyword "symbol")
+    CalcitString _ -> pure (CalcitKeyword "string")
+    CalcitKeyword _ -> pure (CalcitKeyword "keyword")
+    CalcitRef _ _ -> pure (CalcitKeyword "ref")
+    CalcitRecur _ -> pure (CalcitKeyword "recur")
+    CalcitList _ -> pure (CalcitKeyword "list")
+    CalcitMap _ -> pure (CalcitKeyword "map")
+    CalcitSet _ -> pure (CalcitKeyword "set")
+    CalcitRecord _ _ _ -> pure (CalcitKeyword "record")
+    CalcitMacro _ _ _ -> pure (CalcitKeyword "macro")
+    CalcitFn _ _ _ -> pure (CalcitKeyword "fn")
+    CalcitSyntax _ _ -> pure (CalcitKeyword "syntax")
+
+fnNativeRecur :: (Array CalcitData) -> Effect CalcitData
+fnNativeRecur xs = pure (CalcitRecur xs)

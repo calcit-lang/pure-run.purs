@@ -9,6 +9,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
+import Data.UUID (genUUID)
 import Effect (Effect)
 import Effect.Exception (throw)
 import Prelude (bind, pure, (==), (||))
@@ -43,7 +44,8 @@ syntaxDefn xs scope evalFn =
       _ -> throw "function args not list"
     argNames <- traverse extractArgName args
     let f = \ys -> evaluateLines (Array.drop 2 xs) (Map.unions [(foldArgsToScope argNames ys), scope]) evalFn
-    pure (CalcitFn name f)
+    uid <- genUUID
+    pure (CalcitFn name uid f)
   where
     extractArgName :: CalcitData -> Effect String
     extractArgName arg = case arg of
@@ -73,7 +75,8 @@ syntaxDefmacro xs scope evalFn =
           -- log $ "bodyScope: " <> (show bodyScope)
           evaluateLines (Array.drop 2 xs) bodyScope evalFn
      )
-    pure (CalcitMacro name f)
+    uid <- genUUID
+    pure (CalcitMacro name uid f)
   where
     extractArgName :: CalcitData -> Effect String
     extractArgName arg = case arg of
@@ -165,14 +168,40 @@ syntaxQuasiquote xs scope evalFn = case xs !! 0 of
           pure [CalcitList (Array.concat vv)]
       _ -> pure [c]
 
+-- | usage `macroexpand (quote (f 1 2))`
+-- | notice: preprocess is not implemented here, so, NO macroexpand-all
+syntaxMacroexpand :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
+syntaxMacroexpand xs scope evalFn = case xs !! 0 of
+  Just x0 -> do
+    e <- evalFn x0 scope
+    case e of
+      CalcitList ys -> case ys !! 0 of
+        Nothing -> throw "macroexpand expected an expression"
+        Just y -> do
+          v <- evalFn y scope
+          case v of
+            CalcitMacro _ _ f -> f (Array.drop 1 ys)
+            _ -> throw "macroexpand expected macro operation"
+      a -> pure a
+  Nothing -> throw "macroexpand expected 1 argument"
+
+syntaxEval :: (Array CalcitData) -> CalcitScope -> FnEvalFn -> Effect CalcitData
+syntaxEval xs scope evalFn = case xs !! 0 of
+  Just x0 -> do
+    e <- evalFn x0 scope
+    evalFn e scope
+  Nothing -> throw "eval expected 1 argument"
+
 coreNsSyntaxes :: Map.Map String CalcitData
 coreNsSyntaxes = Map.fromFoldable [
-  (Tuple "defmacro" (CalcitSyntax "defmacro" syntaxDefmacro)),
-  (Tuple "defn" (CalcitSyntax "defn" syntaxDefn)),
-  (Tuple "if" (CalcitSyntax "if" syntaxIf)),
-  (Tuple "quote" (CalcitSyntax "quote" syntaxQuote)),
-  (Tuple "quasiquote" (CalcitSyntax "quasiquote" syntaxQuasiquote)),
-  (Tuple ";" (CalcitSyntax ";" syntaxComment)),
-  (Tuple "&let" (CalcitSyntax ";" syntaxNativeLet)),
-  (Tuple "--" (CalcitSyntax "--" syntaxComment))
+  (Tuple "defmacro" (CalcitSyntax "defmacro" syntaxDefmacro))
+, (Tuple "defn" (CalcitSyntax "defn" syntaxDefn))
+, (Tuple "if" (CalcitSyntax "if" syntaxIf))
+, (Tuple "quote" (CalcitSyntax "quote" syntaxQuote))
+, (Tuple "quasiquote" (CalcitSyntax "quasiquote" syntaxQuasiquote))
+, (Tuple ";" (CalcitSyntax ";" syntaxComment))
+, (Tuple "&let" (CalcitSyntax ";" syntaxNativeLet))
+, (Tuple "--" (CalcitSyntax "--" syntaxComment))
+, (Tuple "macroexpand" (CalcitSyntax "macroexpand" syntaxMacroexpand))
+, (Tuple "eval" (CalcitSyntax "eval" syntaxEval))
 ]
