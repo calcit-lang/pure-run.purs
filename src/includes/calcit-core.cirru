@@ -63,7 +63,8 @@
             quasiquote
               if (~ expr) nil
                 do
-                  echo "|Failed:" $ format-to-lisp (quote (~ expr))
+                  echo "|Failed:" (~ message)
+                  echo "|     <=" $ format-to-lisp (quote (~ expr))
                   raise "|failed in assert"
 
         |assert-detect $ quote
@@ -169,6 +170,59 @@
                         &= (~ v) (~ v1)
                         ~ r1
                         case-default (~ v) (~ r0) (~@ (rest xs))
+
+        |nil? $ quote
+          defn nil? (x)
+            &= :nil (type-of x)
+
+        |keys $ quote
+          defn keys (x)
+            map-kv x $ fn (k v) k
+
+        |vals $ quote
+          defn vals (x)
+            map-kv x $ fn (k v) v
+
+        |{} $ quote
+          defmacro {} (& xs)
+            assert "|{} expected pairs"
+              every? xs $ fn (x)
+                &and (list? x)
+                  &= 2 (count x)
+            quasiquote
+              &{} (~@ (concat & xs))
+
+        |fn? $ quote
+          defn fn? (x)
+            &= :fn (type-of x)
+
+        |bool? $ quote
+          defn bool? (x)
+            &= :bool (type-of x)
+
+        |every? $ quote
+          defn every? (xs f)
+            assert "|every? expected a list" (list? xs)
+            assert "|every? expected a function" (fn? f)
+            apply-args (xs)
+              fn (ys)
+                if (empty? ys) true
+                  &let
+                    y0 $ first ys
+                    &let
+                      v $ f y0
+                      assert "|every? expected function returns a boolean" (bool? v)
+                      if v (recur (rest ys)) false
+
+        |&and $ quote
+          defmacro &and (a b)
+            quasiquote
+              if (~ a) (~ b) false
+
+        |&or $ quote
+          defmacro &and (a b)
+            quasiquote
+              if (~ a) true (~ b)
 
       :proc $ quote ()
       :configs $ {}

@@ -6,16 +6,18 @@ import Data.Array ((!!), length)
 import Data.Array as Array
 import Data.Int (toNumber)
 import Data.Int as Int
+import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
 import Data.String as String
 import Data.String.CodeUnits (charAt)
 import Data.String.CodeUnits as CodeUnits
 import Data.Traversable (traverse)
+import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Console (log)
 import Effect.Exception (throw)
-import Prelude (bind, discard, pure, (<>), ($))
+import Prelude (bind, discard, pure, ($), (<>), (/=))
 
 
 fnNativeList :: (Array CalcitData) -> Effect CalcitData
@@ -85,16 +87,36 @@ fnNativeMap xs = case (xs !! 0), (xs !! 1) of
     throw "expected list and function for map"
 
 fnNativeConcat :: (Array CalcitData) -> Effect CalcitData
-fnNativeConcat xs = case (xs !! 0) of
-  Just (CalcitList ys) -> do
-    ret <- traverse (\y -> case y of
-      CalcitList zs -> pure zs
-      _ -> throw "expected list inside list for concat"
-    ) ys
-    pure (CalcitList (Array.concat ret))
-  a1 -> do
-    log $ "a1: " <> (show a1)
-    throw "expected list and function for concat"
+fnNativeConcat ys = do
+  ret <- traverse (\y -> case y of
+    CalcitList zs -> pure zs
+    _ -> throw "expected list inside list for concat"
+  ) ys
+  pure (CalcitList (Array.concat ret))
+
+fnNativeMapMaybe :: (Array CalcitData) -> Effect CalcitData
+fnNativeMapMaybe xs =
+  case (xs !! 0), (xs !! 1) of
+    Just (CalcitList ys), Just (CalcitFn _ _ f) -> do
+      ret <- traverse (\y -> f [y]) ys
+      let retNonNil = Array.filter (\x -> x /= CalcitNil) ret
+      pure (CalcitList retNonNil)
+    -- | map-maybe for map, returns a ([] k v) as valid branch, nil as Nothing
+    Just (CalcitMap ys), Just (CalcitFn _ _ f) -> do
+      ys2 <- traverse (\(Tuple k v) -> f [k, v]) (Map.toUnfoldable ys)
+      let ys3 = Array.mapMaybe extractListToTuple ys2
+      pure (CalcitMap (Map.fromFoldable ys3))
+    a1, a2 -> do
+      log $ "a1: " <> (show a1)
+      log $ "a2: " <> (show a2)
+      throw "map-maybe expected list and function"
+  where
+    extractListToTuple :: CalcitData -> Maybe (Tuple CalcitData CalcitData)
+    extractListToTuple v = case v of
+      CalcitList ys -> case (ys !! 0), (ys !! 1) of
+        Just a, Just b -> Just (Tuple a b)
+        _, _ -> Nothing
+      _ -> Nothing
 
 
 -- TODO range
@@ -111,3 +133,4 @@ fnNativeConcat xs = case (xs !! 0) of
 -- TODO zip
 -- TODO map-maybe
 -- TODO mapcat
+-- TODO map-indexed

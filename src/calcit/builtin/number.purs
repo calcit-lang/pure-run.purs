@@ -20,7 +20,7 @@ calcitAsInt x = case x of
   CalcitNumber n -> case Int.fromNumber n of
     Just i -> pure i
     Nothing -> throw $ (show x) <> " is not a int"
-  _ -> throw $ (show x) <> " is not a number"
+  _ -> throw $ (show x) <> " is not a int"
 
 fnNativeAdd :: (Array CalcitData) -> Effect CalcitData
 fnNativeAdd xs = do

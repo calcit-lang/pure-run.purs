@@ -12,7 +12,7 @@ import Data.Tuple (Tuple(..))
 import Data.UUID (genUUID)
 import Effect (Effect)
 import Effect.Exception (throw)
-import Prelude (bind, pure, (==), (||))
+import Prelude (bind, pure, (==), (||), ($), (<>), show)
 
 
 -- | evaluate lines and return value of last line
@@ -124,8 +124,8 @@ syntaxNativeLet xs scope evalFn = do
       else throw "expected pair length of 2"
     Just CalcitNil ->
        pure { k: "_", v: CalcitNil }
-    Just _ -> throw "expected a pair"
-    Nothing -> throw "expected pair in first argument"
+    Just a -> throw $ "&let expected a pair, got: " <> (show a)
+    Nothing -> throw "&let expected pair in first argument"
   if pair.k == "_"
   then evaluateLines (Array.drop 1 xs) scope evalFn
   else do
