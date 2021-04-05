@@ -136,7 +136,7 @@
                     :data $ {}
                       |T $ {} (:type :expr) (:by |u0) (:at 1617473278532)
                         :data $ {}
-                          |T $ {} (:type :leaf) (:by |u0) (:at 1617473281177) (:text |macroexpand)
+                          |T $ {} (:type :leaf) (:by |u0) (:at 1617601169140) (:text |macroexpand-1)
                           |j $ {} (:type :expr) (:by |u0) (:at 1617525855580)
                             :data $ {}
                               |T $ {} (:type :expr) (:by |u0) (:at 1617473283934)
@@ -231,7 +231,7 @@
                                       |T $ {} (:type :leaf) (:by |u0) (:at 1617524512956) (:text |3)
                                       |j $ {} (:type :leaf) (:by |u0) (:at 1617524516405) (:text "|\"three")
                               |D $ {} (:type :leaf) (:by |u0) (:at 1617525859813) (:text |quote)
-                          |D $ {} (:type :leaf) (:by |u0) (:at 1617524693607) (:text |macroexpand)
+                          |D $ {} (:type :leaf) (:by |u0) (:at 1617601167433) (:text |macroexpand-1)
                       |D $ {} (:type :leaf) (:by |u0) (:at 1617524705453) (:text |format-to-lisp)
                   |f $ {} (:type :leaf) (:by |u0) (:at 1617561317434) (:text "|\"(if (&= (&+ 1 2) 1) |one (case-default (&+ 1 2) |else (2 |two) (3 |three)))")
               |yv $ {} (:type :expr) (:by |u0) (:at 1617380431427)

@@ -34,10 +34,10 @@
               defn x (x) true
               , true
             assert= "\"(count ([] 1 2 3))" $ format-to-lisp
-              macroexpand $ quote
+              macroexpand-1 $ quote
                 m-count $ 1 2 3
             assert= "\"(if (&= (&+ 1 2) 1) |one (case-default (&+ 1 2) |else (2 |two) (3 |three)))" $ format-to-lisp
-              macroexpand $ quote
+              macroexpand-1 $ quote
                 case-default (&+ 1 2) "\"else" (1 "\"one") (2 "\"two") (3 "\"three")
             assert= "\"three" $ case-default (&+ 1 2) "\"else" (1 "\"one") (2 "\"two") (3 "\"three")
             assert= 3 $ eval

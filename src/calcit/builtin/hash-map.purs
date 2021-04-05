@@ -49,10 +49,6 @@ fnNativeDissoc xs = case (xs !! 0), (xs !! 1) of
   Just _, _ -> throw "dissoc expected data structure"
   _, _ -> throw "dissoc expected arguments"
 
--- TODO assoc
-
--- TODO dissoc
-
 -- TODO merge
 
 -- TODO to-pairs
