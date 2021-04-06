@@ -7,10 +7,11 @@ import Data.Array as Array
 import Data.Int as Int
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
+import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Exception (throw)
-import Prelude (bind, pure, ($), (<>), show)
+import Prelude (bind, pure, show, ($), (<>))
 
 fnNativeHashMap :: (Array CalcitData) -> Effect CalcitData
 fnNativeHashMap xs =
@@ -49,21 +50,30 @@ fnNativeDissoc xs = case (xs !! 0), (xs !! 1) of
   Just _, _ -> throw "dissoc expected data structure"
   _, _ -> throw "dissoc expected arguments"
 
--- TODO assoc
+fnNativeMerge :: (Array CalcitData) -> Effect CalcitData
+fnNativeMerge xs = case (xs !! 0), (xs !! 1) of
+  Just (CalcitMap a), Just (CalcitMap b) -> pure (CalcitMap (Map.union b a))
+  Just a, Just b -> throw "&{} expected 2 maps"
+  _, _ -> throw "&{} expected 2 arguments"
 
--- TODO dissoc
+-- TODO use set
+fnNativeToPairs :: (Array CalcitData) -> Effect CalcitData
+fnNativeToPairs xs = case xs !! 0 of
+  Just (CalcitMap a) ->
+    pure (CalcitList (Array.mapMaybe (\(Tuple k v) ->
+      Just (CalcitList [k, v])
+    ) (Map.toUnfoldable a)))
+  Just a -> throw "to-pairs expected a hashmap"
+  Nothing -> throw "to-pairs expected 1 argument"
 
--- TODO merge
-
--- TODO to-pairs
 -- TODO pairs-map
 
--- TODO map-kv
-
--- TODO map-maybe
-
--- TODO keys
-
--- TODO vals
+fnNativeMapKv :: (Array CalcitData) -> Effect CalcitData
+fnNativeMapKv xs = case (xs !! 0), (xs !! 1) of
+  Just (CalcitMap a), Just (CalcitFn _ _ f) -> do
+    ys <- traverse (\(Tuple k v) -> f [k, v]) (Map.toUnfoldable a)
+    pure (CalcitList ys)
+  Just a, Just b -> throw "map-kv expected a hashmap and a function"
+  _, _ -> throw "map-kv expected 2 arguments"
 
 -- TODO pick-keys

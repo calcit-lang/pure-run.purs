@@ -34,10 +34,10 @@
               defn x (x) true
               , true
             assert= "\"(count ([] 1 2 3))" $ format-to-lisp
-              macroexpand $ quote
+              macroexpand-1 $ quote
                 m-count $ 1 2 3
             assert= "\"(if (&= (&+ 1 2) 1) |one (case-default (&+ 1 2) |else (2 |two) (3 |three)))" $ format-to-lisp
-              macroexpand $ quote
+              macroexpand-1 $ quote
                 case-default (&+ 1 2) "\"else" (1 "\"one") (2 "\"two") (3 "\"three")
             assert= "\"three" $ case-default (&+ 1 2) "\"else" (1 "\"one") (2 "\"two") (3 "\"three")
             assert= 3 $ eval
@@ -84,13 +84,24 @@
               map ([] 1 2 3) inc
               [] 2 3 4
             assert=
-              concat $ [] ([] 1 2 3) ([] 4 5 6)
+              concat ([] 1 2 3) ([] 4 5 6)
+              [] 1 2 3 4 5 6
+            assert=
+              concat ([] 1 2) ([] 3 4) ([] 5 6)
               [] 1 2 3 4 5 6
             assert= (&- 4 1) (&+ 1 2)
             assert= ([] 1 :a 3 4)
               assoc ([] 1 2 3 4) 1 :a
             assert= ([] 1 3 4)
               dissoc ([] 1 2 3 4) 1
+            assert= ([] 4 5)
+              map-maybe ([] 1 2 3 4 5)
+                fn (x)
+                  if (&> x 3) x nil
+            assert= true $ every? ([] 2 3 4)
+              fn (x) (&> x 0)
+            assert= false $ every? ([] 2 3 4)
+              fn (x) (&> x 2)
       :proc $ quote ()
       :configs $ {}
     |app.lib $ {}
@@ -122,6 +133,27 @@
               a $ &{} :a 1 :b 2
               assert= (assoc a :c 2) (&{} :a 1 :b 2 :c 2)
               assert= (dissoc a :a) (&{} :b 2)
+            assert= (&{} :a 1 :b 2 :c 3)
+              &merge (&{} :a 1 :b 2) (&{} :c 3)
+            assert= (&{} :a 1 :b 4)
+              &merge (&{} :a 1 :b 2) (&{} :b 4)
+            assert=
+              [] ([] :a 1) ([] :b 2)
+              to-pairs $ &{} :a 1 :b 2
+            assert=
+              [] ([] 1 :a) ([] 2 :b)
+              map-kv (&{} :a 1 :b 2)
+                fn (k v) ([] v k)
+            assert= ([] :a :b)
+              keys $ &{} :a 1 :b 2
+            assert= ([] 1 2)
+              vals $ &{} :a 1 :b 2
+            assert= (&{} :d 4)
+              map-maybe (&{} :a 1 :b 2 :c 3 :d 4)
+                fn (k v)
+                  if (&> v 3) ([] k v) nil
+            assert= (&{} :a 1 :b 2)
+              {} (:a 1) (:b 2)
       :proc $ quote ()
       :configs $ {}
     |app.test-fn $ {}
@@ -196,6 +228,16 @@
             assert= "\"a_b_c" $ join-str ([] |a |b |c) |_
             assert= "\"(+ 1 2)" $ format-to-lisp
               quote $ + 1 2
+            assert= ([] "\"a" "\"b" "\"c") (split "\"abc" "\"")
+            assert= ([] "\"a" "\"b" "\"c") (split "\"a-b-c" "\"-")
+            assert= "\"a b c" $ trim "\" a b c "
+            assert= 0 $ str-find "\"abcde" "\"ab"
+            assert= 1 $ str-find "\"abcde" "\"bc"
+            assert= nil $ str-find "\"abcde" "\"ae"
+            assert= true $ starts-with? "\"abcde" "\"ab"
+            assert= false $ starts-with? "\"abcde" "\"bc"
+            assert= true $ ends-with? "\"abcde" "\"de"
+            assert= false $ ends-with? "\"abcde" "\"cd"
       :proc $ quote ()
       :configs $ {}
     |app.test-symbol $ {}
