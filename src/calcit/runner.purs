@@ -223,7 +223,7 @@ coreFilepath = concat [__dirname,
 extractNsDef :: String -> Effect { ns :: String, def :: String }
 extractNsDef s = case split (Pattern "/") s of
     [ns, def] -> pure { ns: ns, def: def }
-    _ -> throw "failed to extract ns/def"
+    _ -> throw $ "failed to extract ns/def from: " <> s
 
 runCalcit :: String -> Effect Unit
 runCalcit filepath = do
@@ -243,7 +243,7 @@ runCalcit filepath = do
   -- log $  "init fn: " <> initConfig.ns <> "/" <> initConfig.def
 
   case lookupDef initConfig.ns initConfig.def runtimeData of
-    Nothing -> throw "no main function"
+    Nothing -> throw $ "cannot find def: " <> initConfig.ns <> "/" <> initConfig.def
     Just xs -> do
       v <- do
         -- log $ "\nEval: " <> (show xs)

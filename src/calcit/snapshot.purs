@@ -4,7 +4,7 @@ import Data.Either (Either(..), note)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 -- import Effect
-import Prelude (bind, pure, ($))
+import Prelude (bind, pure, ($), (<>), show)
 
 import Data.Array as DataArray
 import Data.Map (Map)
@@ -37,7 +37,6 @@ type Snapshot = {
   files :: Map String FileInSnapShot
 }
 
-
 -- working with EDN
 
 isEdnMap :: CirruEdn -> Boolean
@@ -53,7 +52,7 @@ isEdnString d = case d of
 ednMapGet :: CirruEdn -> CirruEdn -> Either EdnFailure CirruEdn
 ednMapGet d k = case d of
   CrEdnMap x -> note
-    { message: "not found in map", edn: d }
+    { message: (show k) <> " not found in map", edn: d }
     (DataMap.lookup k x)
   _ -> Left { message: "not a map", edn: d }
 

@@ -17,5 +17,3 @@ main = do
       log "defaults to compact.cirru"
       runCalcit "compact.cirru"
     Just path -> runCalcit path
-
-

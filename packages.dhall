@@ -124,5 +124,5 @@ in  upstream
       , "ordered-collections"
       ]
     , repo = "https://github.com/Cirru/cirru-edn.purs.git"
-    , version = "v0.0.4"
+    , version = "v0.0.6"
     }

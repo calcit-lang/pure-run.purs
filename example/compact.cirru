@@ -2,7 +2,7 @@
 {} (:package |app)
   :configs $ {} (:init-fn |app.main/main!) (:reload-fn |app.main/reload!)
     :modules $ [] |core
-    :version |0.0.1
+    :version |0.0.2
   :files $ {}
     |app.test-ref $ {}
       :ns $ quote (ns app.test-ref)
