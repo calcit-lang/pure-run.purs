@@ -20,6 +20,7 @@ jobs:
       - run: yarn
       - run: spago test
       - run: yarn build
+      - run: yarn build-bundler
 
       - run: npm publish
         env:

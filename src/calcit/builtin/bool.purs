@@ -6,7 +6,7 @@ import Data.Array ((!!))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Exception (throw)
-import Prelude (pure, not, (||), (&&))
+import Prelude (pure, not)
 
 fnNativeNot :: (Array CalcitData) -> Effect CalcitData
 fnNativeNot xs = case (xs !! 0) of

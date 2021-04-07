@@ -1874,4 +1874,4 @@
     :local-ui? false
     :init-fn |app.main/main!
     :compact-output? true
-    :version |0.0.1
+    :version |0.0.2
