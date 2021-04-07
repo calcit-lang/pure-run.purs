@@ -1,4 +1,3 @@
-
 module Calcit.Builtin.Number where
 
 import Calcit.Primes (CalcitData(..))

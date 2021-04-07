@@ -1,4 +1,3 @@
-
 module Calcit.Builtin.List where
 
 import Calcit.Primes (CalcitData(..))
@@ -18,7 +17,6 @@ import Effect (Effect)
 import Effect.Console (log)
 import Effect.Exception (throw)
 import Prelude (bind, discard, pure, ($), (<>), (/=))
-
 
 fnNativeList :: (Array CalcitData) -> Effect CalcitData
 fnNativeList xs = pure (CalcitList xs)
@@ -48,28 +46,25 @@ fnNativeCount xs = case (xs !! 0) of
 
 fnNativeSlice :: (Array CalcitData) -> Effect CalcitData
 fnNativeSlice xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
-  Just (CalcitList ys), Just (CalcitNumber from), Just (CalcitNumber to) ->
-    case (Int.fromNumber from), (Int.fromNumber to) of
-      Just fromIdx, Just toIdx -> pure (CalcitList (Array.slice fromIdx toIdx ys))
-      _, _ -> throw "failed to convert int"
-  Just (CalcitList ys), Just (CalcitNumber from), Nothing ->
-    case (Int.fromNumber from) of
-      Just fromIdx -> pure (CalcitList (Array.slice fromIdx (Array.length ys) ys))
-      _ -> throw "failed to convert int of from"
+  Just (CalcitList ys), Just (CalcitNumber from), Just (CalcitNumber to) -> case (Int.fromNumber from), (Int.fromNumber to) of
+    Just fromIdx, Just toIdx -> pure (CalcitList (Array.slice fromIdx toIdx ys))
+    _, _ -> throw "failed to convert int"
+  Just (CalcitList ys), Just (CalcitNumber from), Nothing -> case (Int.fromNumber from) of
+    Just fromIdx -> pure (CalcitList (Array.slice fromIdx (Array.length ys) ys))
+    _ -> throw "failed to convert int of from"
   -- TODO
   _, _, _ -> throw "failed to call slice"
 
 fnNativeFoldl :: (Array CalcitData) -> Effect CalcitData
 fnNativeFoldl xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
-  Just (CalcitList ys), Just x0, Just (CalcitFn _ _ f) ->
-    callItems x0 ys
+  Just (CalcitList ys), Just x0, Just (CalcitFn _ _ f) -> callItems x0 ys
     where
-      callItems :: CalcitData -> Array CalcitData -> Effect CalcitData
-      callItems a0 zs = case zs !! 0 of
-        Nothing -> pure a0
-        Just z0 -> do
-          acc <- f [a0, z0]
-          callItems acc (Array.drop 1 zs)
+    callItems :: CalcitData -> Array CalcitData -> Effect CalcitData
+    callItems a0 zs = case zs !! 0 of
+      Nothing -> pure a0
+      Just z0 -> do
+        acc <- f [ a0, z0 ]
+        callItems acc (Array.drop 1 zs)
   a1, a2, a3 -> do
     log $ "a1: " <> (show a1)
     log $ "a2: " <> (show a2)
@@ -79,7 +74,7 @@ fnNativeFoldl xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
 fnNativeMap :: (Array CalcitData) -> Effect CalcitData
 fnNativeMap xs = case (xs !! 0), (xs !! 1) of
   Just (CalcitList ys), Just (CalcitFn _ _ f) -> do
-    ret <- traverse (\y -> f [y]) ys
+    ret <- traverse (\y -> f [ y ]) ys
     pure (CalcitList ret)
   a1, a2 -> do
     log $ "a1: " <> (show a1)
@@ -88,36 +83,39 @@ fnNativeMap xs = case (xs !! 0), (xs !! 1) of
 
 fnNativeConcat :: (Array CalcitData) -> Effect CalcitData
 fnNativeConcat ys = do
-  ret <- traverse (\y -> case y of
-    CalcitList zs -> pure zs
-    _ -> throw "expected list inside list for concat"
-  ) ys
+  ret <-
+    traverse
+      ( \y -> case y of
+          CalcitList zs -> pure zs
+          _ -> throw "expected list inside list for concat"
+      )
+      ys
   pure (CalcitList (Array.concat ret))
 
 fnNativeMapMaybe :: (Array CalcitData) -> Effect CalcitData
-fnNativeMapMaybe xs =
-  case (xs !! 0), (xs !! 1) of
-    Just (CalcitList ys), Just (CalcitFn _ _ f) -> do
-      ret <- traverse (\y -> f [y]) ys
-      let retNonNil = Array.filter (\x -> x /= CalcitNil) ret
-      pure (CalcitList retNonNil)
-    -- | map-maybe for map, returns a ([] k v) as valid branch, nil as Nothing
-    Just (CalcitMap ys), Just (CalcitFn _ _ f) -> do
-      ys2 <- traverse (\(Tuple k v) -> f [k, v]) (Map.toUnfoldable ys)
-      let ys3 = Array.mapMaybe extractListToTuple ys2
-      pure (CalcitMap (Map.fromFoldable ys3))
-    a1, a2 -> do
-      log $ "a1: " <> (show a1)
-      log $ "a2: " <> (show a2)
-      throw "map-maybe expected list and function"
+fnNativeMapMaybe xs = case (xs !! 0), (xs !! 1) of
+  Just (CalcitList ys), Just (CalcitFn _ _ f) -> do
+    ret <- traverse (\y -> f [ y ]) ys
+    let
+      retNonNil = Array.filter (\x -> x /= CalcitNil) ret
+    pure (CalcitList retNonNil)
+  -- | map-maybe for map, returns a ([] k v) as valid branch, nil as Nothing
+  Just (CalcitMap ys), Just (CalcitFn _ _ f) -> do
+    ys2 <- traverse (\(Tuple k v) -> f [ k, v ]) (Map.toUnfoldable ys)
+    let
+      ys3 = Array.mapMaybe extractListToTuple ys2
+    pure (CalcitMap (Map.fromFoldable ys3))
+  a1, a2 -> do
+    log $ "a1: " <> (show a1)
+    log $ "a2: " <> (show a2)
+    throw "map-maybe expected list and function"
   where
-    extractListToTuple :: CalcitData -> Maybe (Tuple CalcitData CalcitData)
-    extractListToTuple v = case v of
-      CalcitList ys -> case (ys !! 0), (ys !! 1) of
-        Just a, Just b -> Just (Tuple a b)
-        _, _ -> Nothing
-      _ -> Nothing
-
+  extractListToTuple :: CalcitData -> Maybe (Tuple CalcitData CalcitData)
+  extractListToTuple v = case v of
+    CalcitList ys -> case (ys !! 0), (ys !! 1) of
+      Just a, Just b -> Just (Tuple a b)
+      _, _ -> Nothing
+    _ -> Nothing
 
 -- TODO range
 -- TODO reverse
