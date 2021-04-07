@@ -1,12 +1,12 @@
 module Calcit.Bundle where
 
 import Prelude
-import ArgParse.Basic (ArgParser, argument, default, flagHelp, fromRecord, parseArgs, parserHelp, printArgError, printHelp)
+import ArgParse.Basic (ArgParser, argument, default, flagHelp, fromRecord, parseArgs, printArgError)
 import Cirru.Edn (CirruEdn(..), writeCirruEdn)
 import Cirru.Node (CirruNode(..))
 import Cirru.Parser (parseCirru)
 import Control.Parallel (parTraverse)
-import Data.Array (filter, zip, (!!))
+import Data.Array (zip, (!!))
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Map (Map)

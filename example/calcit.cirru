@@ -813,6 +813,38 @@
         :proc $ {} (:type :expr) (:by |u0) (:at 1617386825820)
           :data $ {}
         :configs $ {}
+      |app.test-file $ {}
+        :ns $ {} (:type :expr) (:by |u0) (:at 1617821284675)
+          :data $ {}
+            |T $ {} (:type :leaf) (:by |u0) (:at 1617821284675) (:text |ns)
+            |j $ {} (:type :leaf) (:by |u0) (:at 1617821284675) (:text |app.test-file)
+        :defs $ {}
+          |test-file! $ {} (:type :expr) (:by |u0) (:at 1617821288428)
+            :data $ {}
+              |T $ {} (:type :leaf) (:by |u0) (:at 1617821288428) (:text |defn)
+              |j $ {} (:type :leaf) (:by |u0) (:at 1617821288428) (:text |test-file!)
+              |r $ {} (:type :expr) (:by |u0) (:at 1617821288428)
+                :data $ {}
+              |v $ {} (:type :expr) (:by |u0) (:at 1617821291038)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617821292301) (:text |echo)
+                  |j $ {} (:type :leaf) (:by |u0) (:at 1617821294551) (:text "|\"Testing file")
+              |x $ {} (:type :expr) (:by |u0) (:at 1617821295457)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617821298320) (:text |write-file)
+                  |j $ {} (:type :leaf) (:by |u0) (:at 1617821326956) (:text "|\"output/demo.text")
+                  |r $ {} (:type :leaf) (:by |u0) (:at 1617821315083) (:text "|\"this is a created file")
+              |y $ {} (:type :expr) (:by |u0) (:at 1617821330496)
+                :data $ {}
+                  |T $ {} (:type :expr) (:by |u0) (:at 1617821317559)
+                    :data $ {}
+                      |T $ {} (:type :leaf) (:by |u0) (:at 1617821319174) (:text |read-file)
+                      |j $ {} (:type :leaf) (:by |u0) (:at 1617821329743) (:text "|\"output/demo.text")
+                  |D $ {} (:type :leaf) (:by |u0) (:at 1617821331309) (:text |echo)
+                  |L $ {} (:type :leaf) (:by |u0) (:at 1617821333565) (:text "|\"reading file:")
+        :proc $ {} (:type :expr) (:by |u0) (:at 1617821284675)
+          :data $ {}
+        :configs $ {}
       |app.test-map $ {}
         :ns $ {} (:type :expr) (:by |u0) (:at 1617340999361)
           :data $ {}
@@ -1427,6 +1459,13 @@
                     |v $ {} (:type :expr) (:by |u0) (:at 1617377891364)
                       :data $ {}
                         |j $ {} (:type :leaf) (:by |u0) (:at 1617442854373) (:text |test-ref!)
+                |yyT $ {} (:type :expr) (:by |u0) (:at 1617821352282)
+                  :data $ {}
+                    |j $ {} (:type :leaf) (:by |u0) (:at 1617821352282) (:text |app.test-file)
+                    |r $ {} (:type :leaf) (:by |u0) (:at 1617821352282) (:text |:refer)
+                    |v $ {} (:type :expr) (:by |u0) (:at 1617821352282)
+                      :data $ {}
+                        |j $ {} (:type :leaf) (:by |u0) (:at 1617821352282) (:text |test-file!)
                 |r $ {} (:type :expr) (:by |u0) (:at 1617208849294)
                   :data $ {}
                     |T $ {} (:type :leaf) (:by |u0) (:at 1617341746926) (:text |app.test-macro)
@@ -1463,6 +1502,9 @@
               |wD $ {} (:type :expr) (:by |u0) (:at 1617341123265)
                 :data $ {}
                   |T $ {} (:type :leaf) (:by |u0) (:at 1617341125315) (:text |test-fn!)
+              |xxt $ {} (:type :expr) (:by |u0) (:at 1617470373407)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617821349815) (:text |test-file!)
               |j $ {} (:type :leaf) (:by |u0) (:at 1616315478731) (:text |main!)
               |xe $ {} (:type :expr) (:by |u0) (:at 1617341539338)
                 :data $ {}

@@ -2,6 +2,7 @@ module Calcit.Runner where
 
 import Calcit.Builtin.Bool (fnNativeNot)
 import Calcit.Builtin.Effect (fnNativeEcho, fnNativeRaise)
+import Calcit.Builtin.File (fnNativeReadFile, fnNativeWriteFile)
 import Calcit.Builtin.HashMap (fnNativeAssoc, fnNativeDissoc, fnNativeHashMap, fnNativeMapKv, fnNativeMerge, fnNativeToPairs)
 import Calcit.Builtin.List (fnNativeConcat, fnNativeCount, fnNativeFoldl, fnNativeList, fnNativeMap, fnNativeMapMaybe, fnNativeNth, fnNativeSlice)
 import Calcit.Builtin.Number (fnNativeAdd, fnNativeEq, fnNativeGt, fnNativeLt, fnNativeMinus, fnNativeMod)
@@ -78,13 +79,6 @@ coreNsDefs = Map.union coreNsSyntaxes coreDefs
       , (Tuple "&>" (CalcitFn "&>" (genv3UUID "faked_&>" uidSeed) fnNativeGt))
       , (Tuple "&=" (CalcitFn "&=" (genv3UUID "faked_&=" uidSeed) fnNativeEq))
       , (Tuple "echo" (CalcitFn "echo" (genv3UUID "faked_echo" uidSeed) fnNativeEcho))
-      , (Tuple "[]" (CalcitFn "[]" (genv3UUID "faked_[]" uidSeed) fnNativeList))
-      , (Tuple "nth" (CalcitFn "[]" (genv3UUID "faked_nth" uidSeed) fnNativeNth))
-      , (Tuple "count" (CalcitFn "count" (genv3UUID "faked_count" uidSeed) fnNativeCount))
-      , (Tuple "slice" (CalcitFn "slice" (genv3UUID "faked_slice" uidSeed) fnNativeSlice))
-      , (Tuple "foldl" (CalcitFn "foldl" (genv3UUID "faked_foldl" uidSeed) fnNativeFoldl))
-      , (Tuple "map" (CalcitFn "map" (genv3UUID "faked_map" uidSeed) fnNativeMap))
-      , (Tuple "map-maybe" (CalcitFn "map-maybe" (genv3UUID "faked_map-maybe" uidSeed) fnNativeMapMaybe))
       , (Tuple "concat" (CalcitFn "concat" (genv3UUID "faked_concat" uidSeed) fnNativeConcat))
       , (Tuple "raise" (CalcitFn "raise" (genv3UUID "faked_raise" uidSeed) fnNativeRaise))
       , (Tuple "gensym" (CalcitFn "gensym" (genv3UUID "faked_gensym" uidSeed) fnNativeGensym))
@@ -96,6 +90,14 @@ coreNsDefs = Map.union coreNsSyntaxes coreDefs
       , (Tuple "type-of" (CalcitFn "type-of" (genv3UUID "faked_type-of" uidSeed) fnNativeTypeOf))
       , (Tuple "recur" builtinRecurFn)
       , (Tuple "mod" (CalcitFn "mod" (genv3UUID "faked_mod" uidSeed) fnNativeMod))
+      -- list
+      , (Tuple "[]" (CalcitFn "[]" (genv3UUID "faked_[]" uidSeed) fnNativeList))
+      , (Tuple "nth" (CalcitFn "[]" (genv3UUID "faked_nth" uidSeed) fnNativeNth))
+      , (Tuple "count" (CalcitFn "count" (genv3UUID "faked_count" uidSeed) fnNativeCount))
+      , (Tuple "slice" (CalcitFn "slice" (genv3UUID "faked_slice" uidSeed) fnNativeSlice))
+      , (Tuple "foldl" (CalcitFn "foldl" (genv3UUID "faked_foldl" uidSeed) fnNativeFoldl))
+      , (Tuple "map" (CalcitFn "map" (genv3UUID "faked_map" uidSeed) fnNativeMap))
+      , (Tuple "map-maybe" (CalcitFn "map-maybe" (genv3UUID "faked_map-maybe" uidSeed) fnNativeMapMaybe))
       -- strings
       , (Tuple "&str" (CalcitFn "&str" (genv3UUID "faked_&str" uidSeed) fnNativeStr))
       , (Tuple "&str-concat" (CalcitFn "&str-concat" (genv3UUID "faked_&str-concat" uidSeed) fnNativeStrConcat))
@@ -112,6 +114,9 @@ coreNsDefs = Map.union coreNsSyntaxes coreDefs
       , (Tuple "&merge" (CalcitFn "&merge" (genv3UUID "faked_&merge" uidSeed) fnNativeMerge))
       , (Tuple "to-pairs" (CalcitFn "to-pairs" (genv3UUID "faked_to-pairs" uidSeed) fnNativeToPairs))
       , (Tuple "map-kv" (CalcitFn "map-kv" (genv3UUID "faked_map-kv" uidSeed) fnNativeMapKv))
+      -- file
+      , (Tuple "read-file" (CalcitFn "read-file" (genv3UUID "faked_read-file" uidSeed) fnNativeReadFile))
+      , (Tuple "write-file" (CalcitFn "write-file" (genv3UUID "faked_write-file" uidSeed) fnNativeWriteFile))
       ]
 
 evaluateExpr :: CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
@@ -217,8 +222,8 @@ coreFilepath :: String
 coreFilepath =
   concat
     [ __dirname
-    , -- dirty hack since bundled js may have different paths
-      if contains (Pattern "pure-run.purs/output") __dirname then
+    , if contains (Pattern "pure-run.purs/output") __dirname then
+        -- dirty hack since bundled js may have different paths
         "../../src/includes/calcit-core.cirru"
       else
         "../src/includes/calcit-core.cirru"
