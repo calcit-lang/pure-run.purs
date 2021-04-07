@@ -54,7 +54,7 @@ with other files under `src/`:
 then use the command to combine into a single snapshot:
 
 ```bash
-from=src to=bundled.cirru pure-run-bundle
+pure-run-bundle --from src --to bundled.cirru
 ```
 
 The CLI really dumb and it detects names by reading Cirru tree. Be careful to use it. And you may also need to fix `init-fn` in the `configs` field.

@@ -231,7 +231,7 @@ runCalcit filepath = do
   programData <- case extractProgramData programSnapshot of
     Left reason -> throw $ "Failed to extract program" <> (show reason)
     Right v -> pure v
-  log $ "loading core" <> __dirname <> " " <> coreFilepath
+  -- log $ "loading core" <> __dirname <> " " <> coreFilepath
   coreSnapshot <- loadSnapshotFile coreFilepath
   coreData <- case extractProgramData coreSnapshot of
     Left reason -> throw $ "Failed to extract core" <> (show reason)
