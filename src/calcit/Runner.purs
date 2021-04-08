@@ -61,6 +61,7 @@ evaluateExpr xs scope ns programData = case xs of
   CalcitBool _ -> pure xs
   CalcitNumber n -> pure (CalcitNumber n)
   CalcitSymbol "&" _ -> pure xs -- special syntax does eval
+  CalcitSymbol "_" _ -> pure xs -- special syntax does eval
   CalcitSymbol s symbolNs -> case parseManualNs s of
     Just (Tuple nsAlias def) -> case lookupNsTargetInImport ns nsAlias programData of
       Just target -> evalSymbolFromProgram def scope target programData

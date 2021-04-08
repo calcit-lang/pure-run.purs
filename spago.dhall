@@ -10,7 +10,7 @@ You can edit this file as you like.
   , "cirru-edn"
   , "cirru-parser"
   , "console"
-  , "debug"
+  -- , "debug"
   , "effect"
   , "either"
   , "exceptions"

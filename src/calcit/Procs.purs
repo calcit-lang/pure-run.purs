@@ -5,7 +5,7 @@ import Calcit.Builtin.Dirty (procEcho, procEvalCommonjsFile, procRaise)
 import Calcit.Builtin.File (procGetSourcePath, procReadFile, procWriteFile)
 import Calcit.Builtin.HashMap (procAssoc, procDissoc, procHashMap, procMapKv, procMerge, procToPairs)
 import Calcit.Builtin.List (procConcat, procCount, procFoldl, procList, procMap, procMapMaybe, procNth, procSlice)
-import Calcit.Builtin.Number (procAdd, procEq, procGt, procLt, procMinus, procMod)
+import Calcit.Builtin.Number (procAdd, procDivide, procEq, procGt, procLt, procMinus, procMod, procMultiply)
 import Calcit.Builtin.Ref (procDeref, procRef, procReset)
 import Calcit.Builtin.String (procDirname, procEndsWith, procJoinPath, procSplit, procStartsWith, procStr, procStrConcat, procStrFind, procTrim, procTurnString)
 import Calcit.Builtin.Symbol (procGensym, procRecur, procResetGensymIndex, procTypeOf)
@@ -24,11 +24,15 @@ coreNsDefs = Map.union coreNsSyntaxes coreDefs
   where
   coreDefs =
     Map.fromFoldable
+      -- Math
       [ (Tuple "&+" (CalcitFn "&+" (genv3UUID "faked_&+" uidSeed) procAdd))
       , (Tuple "&-" (CalcitFn "&-" (genv3UUID "faked_&-" uidSeed) procMinus))
+      , (Tuple "&*" (CalcitFn "&*" (genv3UUID "faked_&-" uidSeed) procMultiply))
+      , (Tuple "&/" (CalcitFn "&/" (genv3UUID "faked_&/" uidSeed) procDivide))
       , (Tuple "&<" (CalcitFn "&<" (genv3UUID "faked_&<" uidSeed) procLt))
       , (Tuple "&>" (CalcitFn "&>" (genv3UUID "faked_&>" uidSeed) procGt))
       , (Tuple "&=" (CalcitFn "&=" (genv3UUID "faked_&=" uidSeed) procEq))
+      -- Effect
       , (Tuple "echo" (CalcitFn "echo" (genv3UUID "faked_echo" uidSeed) procEcho))
       , (Tuple "raise" (CalcitFn "raise" (genv3UUID "faked_raise" uidSeed) procRaise))
       , (Tuple "eval-commonjs-file" (CalcitFn "eval-commonjs-file" (genv3UUID "faked_eval-commonjs-file" uidSeed) procEvalCommonjsFile))

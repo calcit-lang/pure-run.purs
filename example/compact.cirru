@@ -42,6 +42,35 @@
             assert= "\"three" $ case-default (&+ 1 2) "\"else" (1 "\"one") (2 "\"two") (3 "\"three")
             assert= 3 $ eval
               quote $ &+ 1 2
+            assert= "\"b2" $ cond
+                &> 2 11
+                , |b1
+              (&> 2 1) |b2
+              true |b0
+            assert= "\"b0" $ cond
+                &> 2 11
+                , |b1
+              false |b2
+              true |b0
+            assert= "\"b0" $ cond
+                &> 2 11
+                , |b1
+              false |b2
+              _ |b0
+            assert= "\"two" $ case 2 (1 "\"one") (2 "\"two") (_ "\"else")
+            assert= "\"else" $ case 3 (1 "\"one") (2 "\"two") (_ "\"else")
+            assert= 6 $ + 1 2 3
+            assert= -4 $ - 1 2 3
+            assert= -1 $ - 1
+            assert= 24 $ * 1 2 3 4
+            assert= 1 $ / 24 2 3 4
+            assert= (&/ 1 2) (/ 2)
+            assert= true $ and true true true
+            assert= false $ and true true false
+            assert= false $ and false false false
+            assert= false $ and false true false
+            assert= true $ = 1 1 1
+            assert= false $ = 1 1 2
         |m-count $ quote
           defmacro m-count (xs)
             quasiquote $ count

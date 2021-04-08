@@ -7,7 +7,7 @@ import Data.Int as Int
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Exception (throw)
-import Prelude (bind, pure, ($), (+), (-), (<), (>), (==), (<>), show)
+import Prelude (bind, pure, ($), (+), (-), (<), (>), (==), (<>), (*), (/), show)
 
 calcitAsNumber :: CalcitData -> Effect Number
 calcitAsNumber x = case x of
@@ -47,6 +47,32 @@ procMinus xs = do
   n2 <- calcitAsNumber a2
   -- log $ "&- " <> (show n1) <> " " <> (show n2) <> " " <> (show (n1 - n2))
   pure (CalcitNumber (n1 - n2))
+
+procMultiply :: (Array CalcitData) -> Effect CalcitData
+procMultiply xs = do
+  -- log $ "+ "  <> (show xs)
+  a1 <- case xs !! 0 of
+    Nothing -> throw "cannot access 0 in array"
+    Just x -> pure x
+  a2 <- case xs !! 1 of
+    Nothing -> throw "cannot access 1 in array"
+    Just x -> pure x
+  n1 <- calcitAsNumber a1
+  n2 <- calcitAsNumber a2
+  pure (CalcitNumber (n1 * n2))
+
+procDivide :: (Array CalcitData) -> Effect CalcitData
+procDivide xs = do
+  -- log $ "+ "  <> (show xs)
+  a1 <- case xs !! 0 of
+    Nothing -> throw "cannot access 0 in array"
+    Just x -> pure x
+  a2 <- case xs !! 1 of
+    Nothing -> throw "cannot access 1 in array"
+    Just x -> pure x
+  n1 <- calcitAsNumber a1
+  n2 <- calcitAsNumber a2
+  pure (CalcitNumber (n1 / n2))
 
 procLt :: (Array CalcitData) -> Effect CalcitData
 procLt xs = do
