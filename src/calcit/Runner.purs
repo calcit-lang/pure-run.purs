@@ -5,6 +5,7 @@ import Calcit.Primes (CalcitData(..), CalcitScope, coreNs, emptyScope)
 import Calcit.Procs (coreNsDefs, builtinRecurFn)
 import Calcit.Program (ProgramCodeData, extractProgramData, lookupDef, lookupDefTargetInImport, lookupEvaledDef, lookupNsTargetInImport, writeEvaledDef)
 import Calcit.Snapshot (Snapshot, loadSnapshotData)
+import Calcit.Builtin.Syntax (callFnWithRecur)
 import Cirru.Edn (parseCirruEdn)
 import Data.Array ((!!))
 import Data.Array as Array
@@ -90,7 +91,7 @@ evaluateExpr xs scope ns programData = case xs of
       v <- evaluateExpr op scope ns programData
       case v of
         CalcitMacro _ _ f -> do
-          expr <- f (Array.drop 1 ys)
+          expr <- callFnWithRecur f (Array.drop 1 ys)
           case expr of
             CalcitNil -> pure CalcitNil
             CalcitBool _ -> pure expr
@@ -115,14 +116,6 @@ evaluateExpr xs scope ns programData = case xs of
         CalcitSymbol s _ -> throw $ "cannot use symbol as function: " <> s
         a -> throw $ "Unknown type of operation: " <> (show a)
   _ -> throw $ "Unexpected structure: " <> (show xs)
-
--- | handles tail recursion, only function need this. macros are not supposed to recurse
-callFnWithRecur :: (Array CalcitData -> Effect CalcitData) -> Array CalcitData -> Effect CalcitData
-callFnWithRecur f xs = do
-  ret <- f xs
-  case ret of
-    CalcitRecur args -> callFnWithRecur f args
-    _ -> pure ret
 
 spreadArgs :: Array CalcitData -> Array CalcitData -> Effect (Array CalcitData)
 spreadArgs xs acc = case (xs !! 0), (xs !! 1) of
