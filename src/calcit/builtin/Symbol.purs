@@ -1,21 +1,16 @@
 module Calcit.Builtin.Symbol where
 
+import Calcit.Globals (symbolGenCounterRef)
 import Calcit.Primes (CalcitData(..))
 import Data.Array ((!!))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Exception (throw)
-import Effect.Ref (Ref)
 import Effect.Ref as Ref
-import Effect.Unsafe (unsafePerformEffect)
 import Prelude ((+), bind, pure, ($), (<>), show, discard)
 
 mockedNs :: String
 mockedNs = "calcit.gen"
-
--- ditry https://wiki.haskell.org/Top_level_mutable_state
-symbolGenCounterRef :: Ref Int
-symbolGenCounterRef = unsafePerformEffect (Ref.new 0)
 
 takeGenCounter :: Effect Int
 takeGenCounter = do

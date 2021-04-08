@@ -3,22 +3,18 @@ module Calcit.Procs where
 import Calcit.Builtin.Bool (fnNativeNot)
 import Calcit.Builtin.Effect (fnNativeEcho, fnNativeRaise)
 import Calcit.Builtin.File (fnNativeReadFile, fnNativeWriteFile)
-import Calcit.Builtin.Syntax (coreNsSyntaxes)
 import Calcit.Builtin.HashMap (fnNativeAssoc, fnNativeDissoc, fnNativeHashMap, fnNativeMapKv, fnNativeMerge, fnNativeToPairs)
 import Calcit.Builtin.List (fnNativeConcat, fnNativeCount, fnNativeFoldl, fnNativeList, fnNativeMap, fnNativeMapMaybe, fnNativeNth, fnNativeSlice)
 import Calcit.Builtin.Number (fnNativeAdd, fnNativeEq, fnNativeGt, fnNativeLt, fnNativeMinus, fnNativeMod)
 import Calcit.Builtin.Ref (fnNativeDeref, fnNativeRef, fnNativeReset)
 import Calcit.Builtin.String (fnNativeEndsWith, fnNativeSplit, fnNativeStartsWith, fnNativeStr, fnNativeStrConcat, fnNativeStrFind, fnNativeTrim, fnNativeTurnString)
 import Calcit.Builtin.Symbol (fnNativeGensym, fnNativeRecur, fnNativeResetGensymIndex, fnNativeTypeOf)
+import Calcit.Builtin.Syntax (coreNsSyntaxes)
+import Calcit.Globals (uidSeed)
 import Calcit.Primes (CalcitData(..))
 import Data.Map as Map
 import Data.Tuple (Tuple(..))
-import Data.UUID (UUID, genUUID, genv3UUID)
-import Effect.Unsafe (unsafePerformEffect)
-
--- | dirty way creating an UUID to be used at top level
-uidSeed :: UUID
-uidSeed = unsafePerformEffect (genUUID)
+import Data.UUID (genv3UUID)
 
 builtinRecurFn :: CalcitData
 builtinRecurFn = CalcitFn "recur" (genv3UUID "faked_recur" uidSeed) fnNativeRecur
