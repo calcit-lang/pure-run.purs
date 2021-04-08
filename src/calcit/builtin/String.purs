@@ -7,6 +7,7 @@ import Data.Maybe (Maybe(..))
 import Data.String as String
 import Effect (Effect)
 import Effect.Exception (throw)
+import Node.Path as Path
 import Prelude (pure, show, ($), (<>), (==), (+))
 import Prelude as Functor
 
@@ -71,3 +72,15 @@ procEndsWith xs = case (xs !! 0), (xs !! 1) of
     _ -> pure (CalcitBool false)
   Just a, Just b -> throw "ends-with? expected 2 strings"
   _, _ -> throw "ends-with? expected 2 arguments"
+
+procJoinPath :: (Array CalcitData) -> Effect CalcitData
+procJoinPath xs = case (xs !! 0), (xs !! 1) of
+  Just (CalcitString s), Just (CalcitString piece) -> pure (CalcitString (Path.concat [ s, piece ]))
+  Just a, Just b -> throw "join-path expected 2 strings"
+  _, _ -> throw "join-path expected 2 arguments"
+
+procDirname :: (Array CalcitData) -> Effect CalcitData
+procDirname xs = case (xs !! 0) of
+  Just (CalcitString s) -> pure (CalcitString (Path.dirname s))
+  Just a -> throw "dirname expected 1 string"
+  _ -> throw "dirname expected 1 argument"

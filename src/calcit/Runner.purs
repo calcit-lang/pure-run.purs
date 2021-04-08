@@ -1,6 +1,8 @@
 module Calcit.Runner where
 
+import Calcit.Globals (programRuntimeEnvsRef)
 import Calcit.Primes (CalcitData(..), CalcitScope, coreNs, emptyScope)
+import Calcit.Procs (coreNsDefs, builtinRecurFn)
 import Calcit.Program (ProgramCodeData, extractProgramData, lookupDef, lookupDefTargetInImport, lookupEvaledDef, lookupNsTargetInImport, writeEvaledDef)
 import Calcit.Snapshot (Snapshot, loadSnapshotData)
 import Cirru.Edn (parseCirruEdn)
@@ -16,12 +18,15 @@ import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Console (log)
 import Effect.Exception (throw)
+import Effect.Ref as Ref
+import Foreign.Object as Object
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync (exists, readTextFile)
 import Node.Globals (__dirname)
 import Node.Path (concat)
+import Node.Path as Path
+import Node.Process as Node
 import Prelude (Unit, bind, discard, pure, show, unit, ($), (&&), (-), (<), (<>), (>), (>=), (==))
-import Calcit.Procs (coreNsDefs, builtinRecurFn)
 
 evaluateNewDef :: CalcitData -> CalcitScope -> String -> String -> ProgramCodeData -> Effect CalcitData
 evaluateNewDef xs scope ns def programData = do
@@ -167,6 +172,12 @@ extractNsDef s = case split (Pattern "/") s of
 
 runCalcit :: String -> Effect Unit
 runCalcit filepath = do
+  ttyEnvs <- Node.getEnv
+  pwd <- case Object.lookup "PWD" ttyEnvs of
+    Just p -> pure p
+    Nothing -> throw "cannot access PWD"
+  envs <- Ref.read programRuntimeEnvsRef
+  Ref.write (envs { sourcePath = (Path.concat [ pwd, filepath ]) }) programRuntimeEnvsRef
   programSnapshot <- loadSnapshotFile filepath
   programData <- case extractProgramData programSnapshot of
     Left reason -> throw $ "Failed to extract program" <> (show reason)
