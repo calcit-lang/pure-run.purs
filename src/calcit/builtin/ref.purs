@@ -9,24 +9,24 @@ import Effect.Exception (throw)
 import Effect.Ref as Ref
 import Prelude (bind, discard, pure, ($), (<>), show)
 
-fnNativeRef :: (Array CalcitData) -> Effect CalcitData
-fnNativeRef xs = case xs !! 0 of
+procRef :: (Array CalcitData) -> Effect CalcitData
+procRef xs = case xs !! 0 of
   Nothing -> throw "ref expected 1 argument"
   Just x0 -> do
     r <- Ref.new x0
     uid <- genUUID
     pure (CalcitRef uid r)
 
-fnNativeDeref :: (Array CalcitData) -> Effect CalcitData
-fnNativeDeref xs = case xs !! 0 of
+procDeref :: (Array CalcitData) -> Effect CalcitData
+procDeref xs = case xs !! 0 of
   Just (CalcitRef _ r) -> do
     v <- Ref.read r
     pure v
   Just a -> throw $ "expected a ref, got: " <> (show a)
   Nothing -> throw "expected an argument"
 
-fnNativeReset :: (Array CalcitData) -> Effect CalcitData
-fnNativeReset xs = case (xs !! 0), (xs !! 1) of
+procReset :: (Array CalcitData) -> Effect CalcitData
+procReset xs = case (xs !! 0), (xs !! 1) of
   Just (CalcitRef _ r), Just v -> do
     Ref.write v r
     pure CalcitNil

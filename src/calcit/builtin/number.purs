@@ -21,8 +21,8 @@ calcitAsInt x = case x of
     Nothing -> throw $ (show x) <> " is not a int"
   _ -> throw $ (show x) <> " is not a int"
 
-fnNativeAdd :: (Array CalcitData) -> Effect CalcitData
-fnNativeAdd xs = do
+procAdd :: (Array CalcitData) -> Effect CalcitData
+procAdd xs = do
   -- log $ "+ "  <> (show xs)
   a1 <- case xs !! 0 of
     Nothing -> throw "cannot access 0 in array"
@@ -34,8 +34,8 @@ fnNativeAdd xs = do
   n2 <- calcitAsNumber a2
   pure (CalcitNumber (n1 + n2))
 
-fnNativeMinus :: (Array CalcitData) -> Effect CalcitData
-fnNativeMinus xs = do
+procMinus :: (Array CalcitData) -> Effect CalcitData
+procMinus xs = do
   -- log $ "- "  <> (show xs)
   a1 <- case xs !! 0 of
     Nothing -> throw "cannot access 0 in array"
@@ -48,8 +48,8 @@ fnNativeMinus xs = do
   -- log $ "&- " <> (show n1) <> " " <> (show n2) <> " " <> (show (n1 - n2))
   pure (CalcitNumber (n1 - n2))
 
-fnNativeLt :: (Array CalcitData) -> Effect CalcitData
-fnNativeLt xs = do
+procLt :: (Array CalcitData) -> Effect CalcitData
+procLt xs = do
   -- log $ "< "  <> (show xs)
   a1 <- case xs !! 0 of
     Nothing -> throw "cannot access 0 in array"
@@ -61,8 +61,8 @@ fnNativeLt xs = do
   n2 <- calcitAsNumber a2
   pure (CalcitBool (n1 < n2))
 
-fnNativeGt :: (Array CalcitData) -> Effect CalcitData
-fnNativeGt xs = do
+procGt :: (Array CalcitData) -> Effect CalcitData
+procGt xs = do
   -- log $ "> "  <> (show xs)
   a1 <- case xs !! 0 of
     Nothing -> throw "cannot access 0 in array"
@@ -74,8 +74,8 @@ fnNativeGt xs = do
   n2 <- calcitAsNumber a2
   pure (CalcitBool (n1 > n2))
 
-fnNativeEq :: (Array CalcitData) -> Effect CalcitData
-fnNativeEq xs = do
+procEq :: (Array CalcitData) -> Effect CalcitData
+procEq xs = do
   -- log $ "> "  <> (show xs)
   a1 <- case xs !! 0 of
     Nothing -> throw "cannot access 0 in array"
@@ -85,8 +85,8 @@ fnNativeEq xs = do
     Just x -> pure x
   pure (CalcitBool (a1 == a2))
 
-fnNativeMod :: (Array CalcitData) -> Effect CalcitData
-fnNativeMod xs = do
+procMod :: (Array CalcitData) -> Effect CalcitData
+procMod xs = do
   -- log $ "> "  <> (show xs)
   a1 <- case xs !! 0 of
     Nothing -> throw "cannot access 0 in array"

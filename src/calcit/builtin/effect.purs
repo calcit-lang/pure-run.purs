@@ -16,13 +16,13 @@ calcitToString x = case x of
   CalcitString s -> s
   _ -> show x
 
-fnNativeEcho :: (Array CalcitData) -> Effect CalcitData
-fnNativeEcho xs = do
+procEcho :: (Array CalcitData) -> Effect CalcitData
+procEcho xs = do
   log $ String.joinWith " " (Functor.map calcitToString xs)
   pure CalcitNil
 
-fnNativeRaise :: (Array CalcitData) -> Effect CalcitData
-fnNativeRaise xs = case (xs !! 0) of
+procRaise :: (Array CalcitData) -> Effect CalcitData
+procRaise xs = case (xs !! 0) of
   Just (CalcitString s) -> throw s
   Just a -> throw $ "unknown argument for raise" <> (show a)
   Nothing -> throw "missing argument for raise"
