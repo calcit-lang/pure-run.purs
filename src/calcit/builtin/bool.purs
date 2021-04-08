@@ -1,4 +1,3 @@
-
 module Calcit.Builtin.Bool where
 
 import Calcit.Primes (CalcitData(..))

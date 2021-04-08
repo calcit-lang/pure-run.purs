@@ -105,24 +105,37 @@ in  upstream
 -------------------------------
 -}
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.14.0-20210318/packages.dhall sha256:98bbacd65191cef354ecbafa1610be13e183ee130491ab9c0ef6e3d606f781b5
+      https://github.com/purescript/package-sets/releases/download/psc-0.14.0-20210406/packages.dhall sha256:7b6af643c2f61d936878f58b613fade6f3cb39f2b4a310f6095784c7b5285879
 
 in  upstream
   with cirru-parser =
-    { dependencies = [
-      , "arrays"
-      , "maybe"
-      , "prelude"
-      ]
+    { dependencies = [ "arrays", "maybe", "prelude" ]
     , repo = "https://github.com/Cirru/parser.purs.git"
-    , version = "v0.0.4"
+    , version = "v0.0.5"
     }
   with cirru-edn =
-    { dependencies = [
-      , "cirru-parser"
-      , "strings"
-      , "ordered-collections"
-      ]
+    { dependencies = [ "cirru-parser", "strings", "ordered-collections" ]
     , repo = "https://github.com/Cirru/cirru-edn.purs.git"
-    , version = "v0.0.6"
+    , version = "v0.0.8"
+    }
+
+  with argparse-basic =
+    { dependencies =
+      [ "arrays"
+      , "console"
+      , "debug"
+      , "effect"
+      , "either"
+      , "foldable-traversable"
+      , "free"
+      , "lists"
+      , "maybe"
+      , "node-process"
+      , "psci-support"
+      , "record"
+      , "strings"
+      , "transformers"
+      ]
+    , repo = "https://github.com/natefaubion/purescript-argparse-basic.git"
+    , version = "v1.0.0"
     }

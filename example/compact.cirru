@@ -123,6 +123,14 @@
             assert= true $ not false
       :proc $ quote ()
       :configs $ {}
+    |app.test-file $ {}
+      :ns $ quote (ns app.test-file)
+      :defs $ {}
+        |test-file! $ quote
+          defn test-file! () (echo "\"Testing file") (write-file "\"output/demo.text" "\"this is a created file")
+            echo "\"reading file:" $ read-file "\"output/demo.text"
+      :proc $ quote ()
+      :configs $ {}
     |app.test-map $ {}
       :ns $ quote (ns app.test-map)
       :defs $ {}
@@ -207,9 +215,10 @@
           app.test-map :refer $ test-map!
           app.test-ref :refer $ test-ref!
           app.test-string :refer $ test-string!
+          app.test-file :refer $ test-file!
       :defs $ {}
         |main! $ quote
-          defn main! () (test-fn!) (test-list!) (test-math!) (test-macro!) (test-symbol!) (test-bool!) (test-map!) (test-ref!) (test-string!)
+          defn main! () (test-fn!) (test-list!) (test-math!) (test-macro!) (test-symbol!) (test-bool!) (test-map!) (test-ref!) (test-string!) (test-file!)
             &let
               a $ &+ 1 2
               assert= a 3

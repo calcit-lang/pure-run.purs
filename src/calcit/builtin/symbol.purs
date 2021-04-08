@@ -1,6 +1,4 @@
-
 module Calcit.Builtin.Symbol where
-
 
 import Calcit.Primes (CalcitData(..))
 import Data.Array ((!!))

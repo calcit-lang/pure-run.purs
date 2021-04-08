@@ -1,7 +1,6 @@
 module Calcit.Builtin.Effect where
 
 import Data.Show
-
 import Calcit.Primes (CalcitData(..))
 import Data.Array ((!!))
 import Data.Functor as Functor

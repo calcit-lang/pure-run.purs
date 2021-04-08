@@ -5,40 +5,35 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 -- import Effect
 import Prelude (bind, pure, ($), (<>), show)
-
 import Data.Array as DataArray
 import Data.Map (Map)
 import Data.Map as DataMap
 -- import Data.Set (Set)
 import Data.Traversable (traverse)
-
 import Cirru.Edn (CirruEdn(..))
 import Cirru.Node (CirruNode)
-
 import Calcit.Primes (EdnFailure)
 
 -- Data Types
+type FileInSnapShot
+  = { ns :: CirruNode
+    , defs :: Map String CirruNode
+    }
 
-type FileInSnapShot = {
-  ns :: CirruNode,
-  defs :: Map String CirruNode
-}
+type SnapshotConfigs
+  = { initFn :: String
+    , reloadFn :: String
+    , modules :: Array String
+    , version :: String
+    }
 
-type SnapshotConfigs = {
-  initFn :: String,
-  reloadFn :: String,
-  modules :: Array String,
-  version :: String
-}
-
-type Snapshot = {
-  package :: String,
-  configs :: SnapshotConfigs,
-  files :: Map String FileInSnapShot
-}
+type Snapshot
+  = { package :: String
+    , configs :: SnapshotConfigs
+    , files :: Map String FileInSnapShot
+    }
 
 -- working with EDN
-
 isEdnMap :: CirruEdn -> Boolean
 isEdnMap d = case d of
   CrEdnMap dict -> true
@@ -51,9 +46,10 @@ isEdnString d = case d of
 
 ednMapGet :: CirruEdn -> CirruEdn -> Either EdnFailure CirruEdn
 ednMapGet d k = case d of
-  CrEdnMap x -> note
-    { message: (show k) <> " not found in map", edn: d }
-    (DataMap.lookup k x)
+  CrEdnMap x ->
+    note
+      { message: (show k) <> " not found in map", edn: d }
+      (DataMap.lookup k x)
   _ -> Left { message: "not a map", edn: d }
 
 ednAsString :: CirruEdn -> Either EdnFailure String
@@ -80,13 +76,13 @@ extractDefs d = case d of
         k <- ednAsString name
         valueEdn <- case (DataMap.lookup name x) of
           Just v -> Right v
-          Nothing -> Left { message: "cannot find in map", edn: name  }
+          Nothing -> Left { message: "cannot find in map", edn: name }
         v <- ednAsQuote valueEdn
         pure $ Tuple k v
-
-    in do
-      pairs <- traverse nameToTuple (DataArray.fromFoldable (DataMap.keys x))
-      Right $ DataMap.fromFoldable pairs
+    in
+      do
+        pairs <- traverse nameToTuple (DataArray.fromFoldable (DataMap.keys x))
+        Right $ DataMap.fromFoldable pairs
   _ -> Left { message: "not a map", edn: d }
 
 extractEdnToFile :: CirruEdn -> Either EdnFailure FileInSnapShot
@@ -108,9 +104,10 @@ extractFiles d = case d of
           Nothing -> Left { message: "cannot find in map", edn: name }
         v <- extractEdnToFile valueEdn
         pure $ Tuple k v
-    in do
-      pairs <- traverse extractFilePair (DataArray.fromFoldable (DataMap.keys x))
-      Right $ DataMap.fromFoldable pairs
+    in
+      do
+        pairs <- traverse extractFilePair (DataArray.fromFoldable (DataMap.keys x))
+        Right $ DataMap.fromFoldable pairs
   _ -> Left { message: "not a map", edn: d }
 
 ednAsQuote :: CirruEdn -> Either EdnFailure CirruNode
@@ -129,13 +126,13 @@ loadSnapshotData edn = do
   modules <- ednAsArrayString modulesEdn
   filesEdn <- ednMapGet edn (CrEdnKeyword "files")
   files <- extractFiles filesEdn
-
-  Right { package: pkg
-    , configs: {
-      initFn: initFn,
-      reloadFn: reloadFn,
-      modules: modules,
-      version: version
-    }
+  Right
+    { package: pkg
+    , configs:
+        { initFn: initFn
+        , reloadFn: reloadFn
+        , modules: modules
+        , version: version
+        }
     , files: files
     }

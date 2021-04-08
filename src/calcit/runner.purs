@@ -2,6 +2,7 @@ module Calcit.Runner where
 
 import Calcit.Builtin.Bool (fnNativeNot)
 import Calcit.Builtin.Effect (fnNativeEcho, fnNativeRaise)
+import Calcit.Builtin.File (fnNativeReadFile, fnNativeWriteFile)
 import Calcit.Builtin.HashMap (fnNativeAssoc, fnNativeDissoc, fnNativeHashMap, fnNativeMapKv, fnNativeMerge, fnNativeToPairs)
 import Calcit.Builtin.List (fnNativeConcat, fnNativeCount, fnNativeFoldl, fnNativeList, fnNativeMap, fnNativeMapMaybe, fnNativeNth, fnNativeSlice)
 import Calcit.Builtin.Number (fnNativeAdd, fnNativeEq, fnNativeGt, fnNativeLt, fnNativeMinus, fnNativeMod)
@@ -33,13 +34,11 @@ import Node.Globals (__dirname)
 import Node.Path (concat)
 import Prelude (Unit, bind, discard, pure, show, unit, ($), (&&), (-), (<), (<>), (>), (>=), (==))
 
-
 evaluateNewDef :: CalcitData -> CalcitScope -> String -> String -> ProgramCodeData -> Effect CalcitData
 evaluateNewDef xs scope ns def programData = do
   newV <- evaluateExpr xs emptyScope ns programData
   writeEvaledDef ns def newV
   pure newV
-
 
 evalSymbolFromProgram :: String -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
 evalSymbolFromProgram s scope symbolNs programData = do
@@ -54,12 +53,13 @@ evalSymbolFromProgram s scope symbolNs programData = do
 parseManualNs :: String -> Maybe (Tuple String String)
 parseManualNs s = do
   idx <- String.indexOf (Pattern "/") s
-  let size = String.length s
-  if size >= 3 && idx > 0 && idx < (size - 1)
-    then case String.split (Pattern "/") s of
-      [ns, def] -> Just (Tuple ns def)
-      _ -> Nothing
-    else Nothing
+  let
+    size = String.length s
+  if size >= 3 && idx > 0 && idx < (size - 1) then case String.split (Pattern "/") s of
+    [ ns, def ] -> Just (Tuple ns def)
+    _ -> Nothing
+  else
+    Nothing
 
 -- | dirty way creating an UUID to be used at top level
 uidSeed :: UUID
@@ -71,48 +71,53 @@ builtinRecurFn = CalcitFn "recur" (genv3UUID "faked_recur" uidSeed) fnNativeRecu
 coreNsDefs :: Map.Map String CalcitData
 coreNsDefs = Map.union coreNsSyntaxes coreDefs
   where
-    coreDefs = Map.fromFoldable [
-      (Tuple "&+" (CalcitFn "&+" (genv3UUID "faked_&+" uidSeed) fnNativeAdd))
-    , (Tuple "&-" (CalcitFn "&-" (genv3UUID "faked_&-" uidSeed) fnNativeMinus))
-    , (Tuple "&<" (CalcitFn "&<" (genv3UUID "faked_&<" uidSeed) fnNativeLt))
-    , (Tuple "&>" (CalcitFn "&>" (genv3UUID "faked_&>" uidSeed) fnNativeGt))
-    , (Tuple "&=" (CalcitFn "&=" (genv3UUID "faked_&=" uidSeed) fnNativeEq))
-    , (Tuple "echo" (CalcitFn "echo" (genv3UUID "faked_echo" uidSeed) fnNativeEcho))
-    , (Tuple "[]" (CalcitFn "[]" (genv3UUID "faked_[]" uidSeed) fnNativeList))
-    , (Tuple "nth" (CalcitFn "[]" (genv3UUID "faked_nth" uidSeed) fnNativeNth))
-    , (Tuple "count" (CalcitFn "count" (genv3UUID "faked_count" uidSeed) fnNativeCount))
-    , (Tuple "slice" (CalcitFn "slice" (genv3UUID "faked_slice" uidSeed) fnNativeSlice))
-    , (Tuple "foldl" (CalcitFn "foldl" (genv3UUID "faked_foldl" uidSeed) fnNativeFoldl))
-    , (Tuple "map" (CalcitFn "map" (genv3UUID "faked_map" uidSeed) fnNativeMap))
-    , (Tuple "map-maybe" (CalcitFn "map-maybe" (genv3UUID "faked_map-maybe" uidSeed) fnNativeMapMaybe))
-    , (Tuple "concat" (CalcitFn "concat" (genv3UUID "faked_concat" uidSeed) fnNativeConcat))
-    , (Tuple "raise" (CalcitFn "raise" (genv3UUID "faked_raise" uidSeed) fnNativeRaise))
-    , (Tuple "gensym" (CalcitFn "gensym" (genv3UUID "faked_gensym" uidSeed) fnNativeGensym))
-    , (Tuple "reset-gensym-index!" (CalcitFn "reset-gensym-index!" (genv3UUID "faked_reset-gensym-index!" uidSeed) fnNativeResetGensymIndex))
-    , (Tuple "not" (CalcitFn "not" (genv3UUID "faked_not" uidSeed) fnNativeNot))
-    , (Tuple "ref" (CalcitFn "ref" (genv3UUID "faked_ref" uidSeed) fnNativeRef))
-    , (Tuple "deref" (CalcitFn "deref" (genv3UUID "faked_deref" uidSeed) fnNativeDeref))
-    , (Tuple "reset!" (CalcitFn "reset!" (genv3UUID "faked_reset!" uidSeed) fnNativeReset))
-    , (Tuple "type-of" (CalcitFn "type-of" (genv3UUID "faked_type-of" uidSeed) fnNativeTypeOf))
-    , (Tuple "recur" builtinRecurFn)
-    , (Tuple "mod" (CalcitFn "mod" (genv3UUID "faked_mod" uidSeed) fnNativeMod))
-    -- strings
-    , (Tuple "&str" (CalcitFn "&str" (genv3UUID "faked_&str" uidSeed) fnNativeStr))
-    , (Tuple "&str-concat" (CalcitFn "&str-concat" (genv3UUID "faked_&str-concat" uidSeed) fnNativeStrConcat))
-    , (Tuple "turn-string" (CalcitFn "turn-string" (genv3UUID "faked_turn-string" uidSeed) fnNativeTurnString))
-    , (Tuple "split" (CalcitFn "split" (genv3UUID "faked_split" uidSeed) fnNativeSplit))
-    , (Tuple "trim" (CalcitFn "trim" (genv3UUID "faked_trim" uidSeed) fnNativeTrim))
-    , (Tuple "str-find" (CalcitFn "str-find" (genv3UUID "faked_str-find" uidSeed) fnNativeStrFind))
-    , (Tuple "starts-with?" (CalcitFn "starts-with?" (genv3UUID "faked_starts-with?" uidSeed) fnNativeStartsWith))
-    , (Tuple "ends-with?" (CalcitFn "ends-with?" (genv3UUID "faked_ends-with?" uidSeed) fnNativeEndsWith))
-    -- maps
-    , (Tuple "&{}" (CalcitFn "&{}" (genv3UUID "faked_&{}" uidSeed) fnNativeHashMap))
-    , (Tuple "assoc" (CalcitFn "assoc" (genv3UUID "faked_assoc" uidSeed) fnNativeAssoc))
-    , (Tuple "dissoc" (CalcitFn "dissoc" (genv3UUID "faked_dissoc" uidSeed) fnNativeDissoc))
-    , (Tuple "&merge" (CalcitFn "&merge" (genv3UUID "faked_&merge" uidSeed) fnNativeMerge))
-    , (Tuple "to-pairs" (CalcitFn "to-pairs" (genv3UUID "faked_to-pairs" uidSeed) fnNativeToPairs))
-    , (Tuple "map-kv" (CalcitFn "map-kv" (genv3UUID "faked_map-kv" uidSeed) fnNativeMapKv))
-    ]
+  coreDefs =
+    Map.fromFoldable
+      [ (Tuple "&+" (CalcitFn "&+" (genv3UUID "faked_&+" uidSeed) fnNativeAdd))
+      , (Tuple "&-" (CalcitFn "&-" (genv3UUID "faked_&-" uidSeed) fnNativeMinus))
+      , (Tuple "&<" (CalcitFn "&<" (genv3UUID "faked_&<" uidSeed) fnNativeLt))
+      , (Tuple "&>" (CalcitFn "&>" (genv3UUID "faked_&>" uidSeed) fnNativeGt))
+      , (Tuple "&=" (CalcitFn "&=" (genv3UUID "faked_&=" uidSeed) fnNativeEq))
+      , (Tuple "echo" (CalcitFn "echo" (genv3UUID "faked_echo" uidSeed) fnNativeEcho))
+      , (Tuple "concat" (CalcitFn "concat" (genv3UUID "faked_concat" uidSeed) fnNativeConcat))
+      , (Tuple "raise" (CalcitFn "raise" (genv3UUID "faked_raise" uidSeed) fnNativeRaise))
+      , (Tuple "gensym" (CalcitFn "gensym" (genv3UUID "faked_gensym" uidSeed) fnNativeGensym))
+      , (Tuple "reset-gensym-index!" (CalcitFn "reset-gensym-index!" (genv3UUID "faked_reset-gensym-index!" uidSeed) fnNativeResetGensymIndex))
+      , (Tuple "not" (CalcitFn "not" (genv3UUID "faked_not" uidSeed) fnNativeNot))
+      , (Tuple "ref" (CalcitFn "ref" (genv3UUID "faked_ref" uidSeed) fnNativeRef))
+      , (Tuple "deref" (CalcitFn "deref" (genv3UUID "faked_deref" uidSeed) fnNativeDeref))
+      , (Tuple "reset!" (CalcitFn "reset!" (genv3UUID "faked_reset!" uidSeed) fnNativeReset))
+      , (Tuple "type-of" (CalcitFn "type-of" (genv3UUID "faked_type-of" uidSeed) fnNativeTypeOf))
+      , (Tuple "recur" builtinRecurFn)
+      , (Tuple "mod" (CalcitFn "mod" (genv3UUID "faked_mod" uidSeed) fnNativeMod))
+      -- list
+      , (Tuple "[]" (CalcitFn "[]" (genv3UUID "faked_[]" uidSeed) fnNativeList))
+      , (Tuple "nth" (CalcitFn "[]" (genv3UUID "faked_nth" uidSeed) fnNativeNth))
+      , (Tuple "count" (CalcitFn "count" (genv3UUID "faked_count" uidSeed) fnNativeCount))
+      , (Tuple "slice" (CalcitFn "slice" (genv3UUID "faked_slice" uidSeed) fnNativeSlice))
+      , (Tuple "foldl" (CalcitFn "foldl" (genv3UUID "faked_foldl" uidSeed) fnNativeFoldl))
+      , (Tuple "map" (CalcitFn "map" (genv3UUID "faked_map" uidSeed) fnNativeMap))
+      , (Tuple "map-maybe" (CalcitFn "map-maybe" (genv3UUID "faked_map-maybe" uidSeed) fnNativeMapMaybe))
+      -- strings
+      , (Tuple "&str" (CalcitFn "&str" (genv3UUID "faked_&str" uidSeed) fnNativeStr))
+      , (Tuple "&str-concat" (CalcitFn "&str-concat" (genv3UUID "faked_&str-concat" uidSeed) fnNativeStrConcat))
+      , (Tuple "turn-string" (CalcitFn "turn-string" (genv3UUID "faked_turn-string" uidSeed) fnNativeTurnString))
+      , (Tuple "split" (CalcitFn "split" (genv3UUID "faked_split" uidSeed) fnNativeSplit))
+      , (Tuple "trim" (CalcitFn "trim" (genv3UUID "faked_trim" uidSeed) fnNativeTrim))
+      , (Tuple "str-find" (CalcitFn "str-find" (genv3UUID "faked_str-find" uidSeed) fnNativeStrFind))
+      , (Tuple "starts-with?" (CalcitFn "starts-with?" (genv3UUID "faked_starts-with?" uidSeed) fnNativeStartsWith))
+      , (Tuple "ends-with?" (CalcitFn "ends-with?" (genv3UUID "faked_ends-with?" uidSeed) fnNativeEndsWith))
+      -- maps
+      , (Tuple "&{}" (CalcitFn "&{}" (genv3UUID "faked_&{}" uidSeed) fnNativeHashMap))
+      , (Tuple "assoc" (CalcitFn "assoc" (genv3UUID "faked_assoc" uidSeed) fnNativeAssoc))
+      , (Tuple "dissoc" (CalcitFn "dissoc" (genv3UUID "faked_dissoc" uidSeed) fnNativeDissoc))
+      , (Tuple "&merge" (CalcitFn "&merge" (genv3UUID "faked_&merge" uidSeed) fnNativeMerge))
+      , (Tuple "to-pairs" (CalcitFn "to-pairs" (genv3UUID "faked_to-pairs" uidSeed) fnNativeToPairs))
+      , (Tuple "map-kv" (CalcitFn "map-kv" (genv3UUID "faked_map-kv" uidSeed) fnNativeMapKv))
+      -- file
+      , (Tuple "read-file" (CalcitFn "read-file" (genv3UUID "faked_read-file" uidSeed) fnNativeReadFile))
+      , (Tuple "write-file" (CalcitFn "write-file" (genv3UUID "faked_write-file" uidSeed) fnNativeWriteFile))
+      ]
 
 evaluateExpr :: CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
 evaluateExpr xs scope ns programData = case xs of
@@ -147,7 +152,7 @@ evaluateExpr xs scope ns programData = case xs of
       -- log $ "Eval expression: " <> (show ys)
       v <- evaluateExpr op scope ns programData
       case v of
-        CalcitMacro _  _ f -> do
+        CalcitMacro _ _ f -> do
           expr <- f (Array.drop 1 ys)
           case expr of
             CalcitNil -> pure CalcitNil
@@ -160,16 +165,16 @@ evaluateExpr xs scope ns programData = case xs of
               -- log $ "the code:" <> show code
               evaluateExpr expr scope ns programData
             _ -> throw "unknown data from defmacro"
-
         CalcitFn _ _ f -> do
           args <- traverse (\x -> evaluateExpr x scope ns programData) (Array.drop 1 ys)
           spreadedArgs <- spreadArgs args []
-          if v == builtinRecurFn
-          then f spreadedArgs
-          else callFnWithRecur f spreadedArgs
+          if v == builtinRecurFn then
+            f spreadedArgs
+          else
+            callFnWithRecur f spreadedArgs
         CalcitSyntax _ f -> f (Array.drop 1 ys) scope evalFn
           where
-            evalFn zs s2 = evaluateExpr zs s2 ns programData
+          evalFn zs s2 = evaluateExpr zs s2 ns programData
         CalcitSymbol s _ -> throw $ "cannot use symbol as function: " <> s
         a -> throw $ "Unknown type of operation: " <> (show a)
   _ -> throw $ "Unexpected structure: " <> (show xs)
@@ -185,10 +190,10 @@ callFnWithRecur f xs = do
 spreadArgs :: Array CalcitData -> Array CalcitData -> Effect (Array CalcitData)
 spreadArgs xs acc = case (xs !! 0), (xs !! 1) of
   Nothing, _ -> pure acc
-  Just (CalcitSymbol "&" _), Just (CalcitList ys) -> pure (Array.concat [acc, ys])
+  Just (CalcitSymbol "&" _), Just (CalcitList ys) -> pure (Array.concat [ acc, ys ])
   Just (CalcitSymbol "&" _), Just a -> throw $ "cannot spread: " <> (show a)
   Just (CalcitSymbol "&" _), Nothing -> throw $ "nothing to spread: " <> (show xs)
-  Just x, _ -> spreadArgs (Array.drop 1 xs) (Array.concat [acc, [x]])
+  Just x, _ -> spreadArgs (Array.drop 1 xs) (Array.concat [ acc, [ x ] ])
 
 loadSnapshotFile :: String -> Effect Snapshot
 loadSnapshotFile filepath = do
@@ -198,7 +203,8 @@ loadSnapshotFile filepath = do
   case parseCirruEdn content of
     Left nodes -> throw $ "failed to parse edn" <> filepath
     Right codeTree -> do
-      let snapshot = loadSnapshotData codeTree
+      let
+        snapshot = loadSnapshotData codeTree
       -- log $ "Snapshot: " <> (show snapshot)
       case snapshot of
         Left s -> throw $ "failed to parse snapshot" <> (show snapshot) <> (show s)
@@ -213,17 +219,20 @@ loadCompactFile snapshot = do
       pure v
 
 coreFilepath :: String
-coreFilepath = concat [__dirname,
-  -- dirty hack since bundled js may have different paths
-  if contains (Pattern "pure-run.purs/output") __dirname
-  then "../../src/includes/calcit-core.cirru"
-  else "../src/includes/calcit-core.cirru"
-]
+coreFilepath =
+  concat
+    [ __dirname
+    , if contains (Pattern "pure-run.purs/output") __dirname then
+        -- dirty hack since bundled js may have different paths
+        "../../src/includes/calcit-core.cirru"
+      else
+        "../src/includes/calcit-core.cirru"
+    ]
 
 extractNsDef :: String -> Effect { ns :: String, def :: String }
 extractNsDef s = case split (Pattern "/") s of
-    [ns, def] -> pure { ns: ns, def: def }
-    _ -> throw $ "failed to extract ns/def from: " <> s
+  [ ns, def ] -> pure { ns: ns, def: def }
+  _ -> throw $ "failed to extract ns/def from: " <> s
 
 runCalcit :: String -> Effect Unit
 runCalcit filepath = do
@@ -231,17 +240,16 @@ runCalcit filepath = do
   programData <- case extractProgramData programSnapshot of
     Left reason -> throw $ "Failed to extract program" <> (show reason)
     Right v -> pure v
-  log $ "loading core" <> __dirname <> " " <> coreFilepath
+  -- log $ "loading core" <> __dirname <> " " <> coreFilepath
   coreSnapshot <- loadSnapshotFile coreFilepath
   coreData <- case extractProgramData coreSnapshot of
     Left reason -> throw $ "Failed to extract core" <> (show reason)
     Right v -> pure v
   initConfig <- extractNsDef programSnapshot.configs.initFn
-
-  let runtimeData = Map.union programData coreData
+  let
+    runtimeData = Map.union programData coreData
   -- log $ "\nProgram data: " <> (show runtimeData)
   -- log $  "init fn: " <> initConfig.ns <> "/" <> initConfig.def
-
   case lookupDef initConfig.ns initConfig.def runtimeData of
     Nothing -> throw $ "cannot find def: " <> initConfig.ns <> "/" <> initConfig.def
     Just xs -> do
@@ -250,6 +258,6 @@ runCalcit filepath = do
         evaluateExpr xs emptyScope initConfig.ns runtimeData
       case v of
         CalcitFn name _ f -> do
-          result <- f [v]
+          result <- f [ v ]
           log $ "Return value: " <> (show result)
         _ -> throw "Expected function entry"

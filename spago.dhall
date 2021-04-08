@@ -2,9 +2,10 @@
 Welcome to a Spago project!
 You can edit this file as you like.
 -}
-{ name = "my-project"
+{ name = "calcit-pure-run"
 , dependencies =
   [ "aff"
+  , "argparse-basic"
   , "cirru-edn"
   , "cirru-parser"
   , "console"

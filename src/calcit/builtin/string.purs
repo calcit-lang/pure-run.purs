@@ -1,4 +1,3 @@
-
 module Calcit.Builtin.String where
 
 import Calcit.Primes (CalcitData(..))
@@ -36,10 +35,9 @@ fnNativeTurnString xs = case xs !! 0 of
 
 fnNativeSplit :: (Array CalcitData) -> Effect CalcitData
 fnNativeSplit xs = case (xs !! 0), (xs !! 1) of
-  Just (CalcitString s), Just (CalcitString sep) ->
-    pure (CalcitList (Functor.map (\x -> CalcitString x) ys))
+  Just (CalcitString s), Just (CalcitString sep) -> pure (CalcitList (Functor.map (\x -> CalcitString x) ys))
     where
-      ys = String.split (String.Pattern sep) s
+    ys = String.split (String.Pattern sep) s
   Just a, Just b -> throw "split expected 2 strings"
   _, _ -> throw "split expected 2 arguments"
 
@@ -52,29 +50,24 @@ fnNativeTrim xs = case (xs !! 0) of
 
 fnNativeStrFind :: (Array CalcitData) -> Effect CalcitData
 fnNativeStrFind xs = case (xs !! 0), (xs !! 1) of
-  Just (CalcitString s), Just (CalcitString piece) ->
-    case String.indexOf (String.Pattern piece) s of
-      Just idx -> pure (CalcitNumber (Int.toNumber idx))
-      Nothing -> pure CalcitNil
+  Just (CalcitString s), Just (CalcitString piece) -> case String.indexOf (String.Pattern piece) s of
+    Just idx -> pure (CalcitNumber (Int.toNumber idx))
+    Nothing -> pure CalcitNil
   Just a, Just b -> throw "str-find expected 2 strings"
   _, _ -> throw "str-find expected 2 arguments"
 
 fnNativeStartsWith :: (Array CalcitData) -> Effect CalcitData
 fnNativeStartsWith xs = case (xs !! 0), (xs !! 1) of
-  Just (CalcitString s), Just (CalcitString piece) ->
-    case String.indexOf (String.Pattern piece) s of
-      Just 0 -> pure (CalcitBool true)
-      _ -> pure (CalcitBool false)
+  Just (CalcitString s), Just (CalcitString piece) -> case String.indexOf (String.Pattern piece) s of
+    Just 0 -> pure (CalcitBool true)
+    _ -> pure (CalcitBool false)
   Just a, Just b -> throw "starts-with? expected 2 strings"
   _, _ -> throw "starts-with? expected 2 arguments"
 
 fnNativeEndsWith :: (Array CalcitData) -> Effect CalcitData
 fnNativeEndsWith xs = case (xs !! 0), (xs !! 1) of
-  Just (CalcitString s), Just (CalcitString piece) ->
-    case String.lastIndexOf (String.Pattern piece) s of
-      Just n -> pure (CalcitBool ((n + (String.length piece)) == (String.length s)))
-      _ -> pure (CalcitBool false)
+  Just (CalcitString s), Just (CalcitString piece) -> case String.lastIndexOf (String.Pattern piece) s of
+    Just n -> pure (CalcitBool ((n + (String.length piece)) == (String.length s)))
+    _ -> pure (CalcitBool false)
   Just a, Just b -> throw "ends-with? expected 2 strings"
   _, _ -> throw "ends-with? expected 2 arguments"
-
--- TODO regex

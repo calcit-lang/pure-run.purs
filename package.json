@@ -1,6 +1,6 @@
 {
   "name": "@calcit/pure-run",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "toy interpreter to run compact.cirru file emitted from calcit-editor",
   "license": "MIT",
   "bin": {

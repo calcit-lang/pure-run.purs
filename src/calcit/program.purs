@@ -1,8 +1,6 @@
-
 module Calcit.Program where
 
 import Data.Unit
-
 import Calcit.Primes (CalcitData(..), CalcitFailure, CalcitScope, cirruToCalcit)
 import Calcit.Snapshot (Snapshot)
 import Cirru.Node (CirruNode(..), isCirruLeaf)
@@ -21,17 +19,21 @@ import Effect.Unsafe (unsafePerformEffect)
 import Prelude (bind, pure, (==), (<>))
 
 -- defRule: ns def
-data ImportRule = ImportNsRule String | ImportDefRule String String
+data ImportRule
+  = ImportNsRule String
+  | ImportDefRule String String
 
 -- | information extracted from snapshot
-type ProgramFileData = {
-  importMap :: Map.Map String ImportRule,
-  defs :: Map.Map String CalcitData
-}
+type ProgramFileData
+  = { importMap :: Map.Map String ImportRule
+    , defs :: Map.Map String CalcitData
+    }
 
-type ProgramCodeData = Map.Map String ProgramFileData
+type ProgramCodeData
+  = Map.Map String ProgramFileData
 
-type EvalFn = CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
+type EvalFn
+  = CalcitData -> CalcitScope -> String -> ProgramCodeData -> Effect CalcitData
 
 instance showImportRule :: Show ImportRule where
   show (ImportNsRule ns) = "(import ns: " <> ns <> ")"
@@ -51,20 +53,27 @@ filterLeaf node = case node of
 extractImportRule :: CirruNode -> String -> Either CalcitFailure (Array (Tuple String ImportRule))
 extractImportRule node ns = case node of
   CirruLeaf s -> Left { message: "expected import rule in list", data: CalcitSymbol s ns }
-  CirruList xs -> if (length xs) == 3
-    then case xs !! 1 of
+  CirruList xs ->
+    if (length xs) == 3 then case xs !! 1 of
       Just (CirruLeaf ":as") -> case (xs !! 0), (xs !! 2) of
-        Just (CirruLeaf target), Just (CirruLeaf alias) -> Right [Tuple alias (ImportNsRule target)]
+        Just (CirruLeaf target), Just (CirruLeaf alias) -> Right [ Tuple alias (ImportNsRule target) ]
         _, _ -> Left { message: "invalid :as rule", data: cirruToCalcit node ns }
       Just (CirruLeaf ":refer") -> case (xs !! 0), (xs !! 2) of
-        Just (CirruLeaf target), Just (CirruList ys) -> if all isCirruLeaf ys
-          then Right (Array.mapMaybe (\alias ->
-              Just (Tuple alias (ImportDefRule target alias))
-            ) (Array.mapMaybe filterLeaf ys))
-          else Left { message: "invalid :refer names, expected all leaves", data: cirruToCalcit node ns }
-        _, _ -> Left { message: "invalid :refer rule", data: cirruToCalcit node ns}
+        Just (CirruLeaf target), Just (CirruList ys) ->
+          if all isCirruLeaf ys then
+            Right
+              ( Array.mapMaybe
+                  ( \alias ->
+                      Just (Tuple alias (ImportDefRule target alias))
+                  )
+                  (Array.mapMaybe filterLeaf ys)
+              )
+          else
+            Left { message: "invalid :refer names, expected all leaves", data: cirruToCalcit node ns }
+        _, _ -> Left { message: "invalid :refer rule", data: cirruToCalcit node ns }
       _ -> Left { message: "unknown import rule", data: cirruToCalcit node ns }
-    else Left { message: "expected import rule in length 3", data: cirruToCalcit node ns }
+    else
+      Left { message: "expected import rule in length 3", data: cirruToCalcit node ns }
 
 -- | parse (ns a.b (:require ...))
 extractImportMap :: CirruNode -> String -> Either CalcitFailure (Map.Map String ImportRule)
@@ -72,14 +81,13 @@ extractImportMap node ns = case node of
   CirruLeaf s -> Left { message: "ns rule expects a list", data: cirruToCalcit node ns }
   CirruList xs -> case (xs !! 0), (xs !! 1), (xs !! 2) of
     Just (CirruLeaf _), Just (CirruLeaf _), Just (CirruList ys) ->
-      if (ys !! 0) == Just (CirruLeaf ":require")
-      then case traverse (\line -> extractImportRule line ns) (Array.drop 1 ys) of
+      if (ys !! 0) == Just (CirruLeaf ":require") then case traverse (\line -> extractImportRule line ns) (Array.drop 1 ys) of
         Right zs -> Right (Map.fromFoldable (Array.concat zs))
         Left failure -> Left failure
-      else Left { message: "expected :require field", data: cirruToCalcit (CirruList ys) ns}
+      else
+        Left { message: "expected :require field", data: cirruToCalcit (CirruList ys) ns }
     Just (CirruLeaf _), Just (CirruLeaf _), Nothing -> Right (Map.fromFoldable [])
-    _, _, _ -> Left { message: "invalid ns format", data: cirruToCalcit node ns}
-
+    _, _, _ -> Left { message: "invalid ns format", data: cirruToCalcit node ns }
 
 extractProgramData :: Snapshot -> Either CalcitFailure ProgramCodeData
 extractProgramData s =
@@ -90,10 +98,11 @@ extractProgramData s =
         Just file -> Right file
         Nothing -> Left { message: "cannot find ns in map", data: CalcitNil }
       importMap <- extractImportMap fileInfo.ns ns
-      let file = {
-        importMap: importMap,
-        defs: Map.mapMaybe (\x -> Just (cirruToCalcit x ns)) fileInfo.defs
-      }
+      let
+        file =
+          { importMap: importMap
+          , defs: Map.mapMaybe (\x -> Just (cirruToCalcit x ns)) fileInfo.defs
+          }
       pure (Tuple ns file)
   in
     -- use internal for list
@@ -137,8 +146,7 @@ writeEvaledDef ns def v = do
   case Map.lookup ns program of
     Nothing -> Ref.write newProgram programEvaledDataRef
       where
-        newProgram = Map.fromFoldable [Tuple ns (Map.fromFoldable [Tuple def v])]
+      newProgram = Map.fromFoldable [ Tuple ns (Map.fromFoldable [ Tuple def v ]) ]
     Just defs -> Ref.write newProgram programEvaledDataRef
       where
-        newProgram = Map.insert ns (Map.insert def v defs) program
-
+      newProgram = Map.insert ns (Map.insert def v defs) program
