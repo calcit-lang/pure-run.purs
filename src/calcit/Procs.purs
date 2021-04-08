@@ -1,7 +1,7 @@
 module Calcit.Procs where
 
 import Calcit.Builtin.Bool (procNot)
-import Calcit.Builtin.Effect (procEcho, procEvalCommonjsFile, procRaise)
+import Calcit.Builtin.Dirty (procEcho, procEvalCommonjsFile, procRaise)
 import Calcit.Builtin.File (procGetSourcePath, procReadFile, procWriteFile)
 import Calcit.Builtin.HashMap (procAssoc, procDissoc, procHashMap, procMapKv, procMerge, procToPairs)
 import Calcit.Builtin.List (procConcat, procCount, procFoldl, procList, procMap, procMapMaybe, procNth, procSlice)

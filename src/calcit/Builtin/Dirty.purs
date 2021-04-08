@@ -1,4 +1,4 @@
-module Calcit.Builtin.Effect where
+module Calcit.Builtin.Dirty where
 
 import Data.Show
 import Calcit.Primes (CalcitData(..))
