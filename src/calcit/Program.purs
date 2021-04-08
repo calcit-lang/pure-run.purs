@@ -1,6 +1,7 @@
 module Calcit.Program where
 
 import Data.Unit
+import Calcit.Globals (programEvaledDataRef)
 import Calcit.Primes (CalcitData(..), CalcitFailure, CalcitScope, cirruToCalcit)
 import Calcit.Snapshot (Snapshot)
 import Cirru.Node (CirruNode(..), isCirruLeaf)
@@ -15,7 +16,6 @@ import Data.Traversable (traverse)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Ref as Ref
-import Effect.Unsafe (unsafePerformEffect)
 import Prelude (bind, pure, (==), (<>))
 
 -- defRule: ns def
@@ -38,11 +38,6 @@ type EvalFn
 instance showImportRule :: Show ImportRule where
   show (ImportNsRule ns) = "(import ns: " <> ns <> ")"
   show (ImportDefRule ns def) = "(import def: " <> ns <> " " <> def <> ")"
-
--- | real program state
--- ditry https://wiki.haskell.org/Top_level_mutable_state
-programEvaledDataRef :: Ref.Ref (Map.Map String (Map.Map String CalcitData))
-programEvaledDataRef = unsafePerformEffect (Ref.new (Map.fromFoldable []))
 
 filterLeaf :: CirruNode -> Maybe String
 filterLeaf node = case node of

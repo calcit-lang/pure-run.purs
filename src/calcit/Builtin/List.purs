@@ -18,11 +18,11 @@ import Effect.Console (log)
 import Effect.Exception (throw)
 import Prelude (bind, discard, pure, ($), (<>), (/=))
 
-fnNativeList :: (Array CalcitData) -> Effect CalcitData
-fnNativeList xs = pure (CalcitList xs)
+procList :: (Array CalcitData) -> Effect CalcitData
+procList xs = pure (CalcitList xs)
 
-fnNativeNth :: (Array CalcitData) -> Effect CalcitData
-fnNativeNth xs = case (xs !! 0), (xs !! 1) of
+procNth :: (Array CalcitData) -> Effect CalcitData
+procNth xs = case (xs !! 0), (xs !! 1) of
   Just (CalcitList ys), Just (CalcitNumber n) -> case Int.fromNumber n of
     Nothing -> throw "nth expected index in int"
     Just index -> case ys !! index of
@@ -37,15 +37,15 @@ fnNativeNth xs = case (xs !! 0), (xs !! 1) of
   Just (CalcitList _), _ -> throw "nth expected index"
   _, _ -> throw "failed call nth"
 
-fnNativeCount :: (Array CalcitData) -> Effect CalcitData
-fnNativeCount xs = case (xs !! 0) of
+procCount :: (Array CalcitData) -> Effect CalcitData
+procCount xs = case (xs !! 0) of
   Just (CalcitList ys) -> pure (CalcitNumber (toNumber (length ys)))
   Just (CalcitString s) -> pure (CalcitNumber (toNumber (String.length s)))
   Just _ -> throw "count expected a List"
   Nothing -> throw "count expected an argument"
 
-fnNativeSlice :: (Array CalcitData) -> Effect CalcitData
-fnNativeSlice xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
+procSlice :: (Array CalcitData) -> Effect CalcitData
+procSlice xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
   Just (CalcitList ys), Just (CalcitNumber from), Just (CalcitNumber to) -> case (Int.fromNumber from), (Int.fromNumber to) of
     Just fromIdx, Just toIdx -> pure (CalcitList (Array.slice fromIdx toIdx ys))
     _, _ -> throw "failed to convert int"
@@ -55,8 +55,8 @@ fnNativeSlice xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
   -- TODO
   _, _, _ -> throw "failed to call slice"
 
-fnNativeFoldl :: (Array CalcitData) -> Effect CalcitData
-fnNativeFoldl xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
+procFoldl :: (Array CalcitData) -> Effect CalcitData
+procFoldl xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
   Just (CalcitList ys), Just x0, Just (CalcitFn _ _ f) -> callItems x0 ys
     where
     callItems :: CalcitData -> Array CalcitData -> Effect CalcitData
@@ -71,8 +71,8 @@ fnNativeFoldl xs = case (xs !! 0), (xs !! 1), (xs !! 2) of
     log $ "a3: " <> (show a3)
     throw "expected list, a0, and function for foldl"
 
-fnNativeMap :: (Array CalcitData) -> Effect CalcitData
-fnNativeMap xs = case (xs !! 0), (xs !! 1) of
+procMap :: (Array CalcitData) -> Effect CalcitData
+procMap xs = case (xs !! 0), (xs !! 1) of
   Just (CalcitList ys), Just (CalcitFn _ _ f) -> do
     ret <- traverse (\y -> f [ y ]) ys
     pure (CalcitList ret)
@@ -81,8 +81,8 @@ fnNativeMap xs = case (xs !! 0), (xs !! 1) of
     log $ "a2: " <> (show a2)
     throw "expected list and function for map"
 
-fnNativeConcat :: (Array CalcitData) -> Effect CalcitData
-fnNativeConcat ys = do
+procConcat :: (Array CalcitData) -> Effect CalcitData
+procConcat ys = do
   ret <-
     traverse
       ( \y -> case y of
@@ -92,8 +92,8 @@ fnNativeConcat ys = do
       ys
   pure (CalcitList (Array.concat ret))
 
-fnNativeMapMaybe :: (Array CalcitData) -> Effect CalcitData
-fnNativeMapMaybe xs = case (xs !! 0), (xs !! 1) of
+procMapMaybe :: (Array CalcitData) -> Effect CalcitData
+procMapMaybe xs = case (xs !! 0), (xs !! 1) of
   Just (CalcitList ys), Just (CalcitFn _ _ f) -> do
     ret <- traverse (\y -> f [ y ]) ys
     let

@@ -1,29 +1,24 @@
 module Calcit.Builtin.Symbol where
 
+import Calcit.Globals (symbolGenCounterRef)
 import Calcit.Primes (CalcitData(..))
 import Data.Array ((!!))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Exception (throw)
-import Effect.Ref (Ref)
 import Effect.Ref as Ref
-import Effect.Unsafe (unsafePerformEffect)
 import Prelude ((+), bind, pure, ($), (<>), show, discard)
 
 mockedNs :: String
 mockedNs = "calcit.gen"
-
--- ditry https://wiki.haskell.org/Top_level_mutable_state
-symbolGenCounterRef :: Ref Int
-symbolGenCounterRef = unsafePerformEffect (Ref.new 0)
 
 takeGenCounter :: Effect Int
 takeGenCounter = do
   idx <- Ref.modify (\x -> x + 1) symbolGenCounterRef
   pure idx
 
-fnNativeGensym :: (Array CalcitData) -> Effect CalcitData
-fnNativeGensym xs = case xs !! 0 of
+procGensym :: (Array CalcitData) -> Effect CalcitData
+procGensym xs = case xs !! 0 of
   Just (CalcitString s) -> do
     idx <- takeGenCounter
     pure (CalcitSymbol (s <> "__" <> (show idx)) mockedNs)
@@ -38,13 +33,13 @@ fnNativeGensym xs = case xs !! 0 of
     idx <- takeGenCounter
     pure (CalcitSymbol ("G__" <> (show idx)) mockedNs)
 
-fnNativeResetGensymIndex :: (Array CalcitData) -> Effect CalcitData
-fnNativeResetGensymIndex xs = do
+procResetGensymIndex :: (Array CalcitData) -> Effect CalcitData
+procResetGensymIndex xs = do
   Ref.write 0 symbolGenCounterRef
   pure CalcitNil
 
-fnNativeTypeOf :: (Array CalcitData) -> Effect CalcitData
-fnNativeTypeOf xs = case xs !! 0 of
+procTypeOf :: (Array CalcitData) -> Effect CalcitData
+procTypeOf xs = case xs !! 0 of
   Nothing -> throw "type-of expected 1 argument"
   Just x -> case x of
     CalcitNil -> pure (CalcitKeyword "nil")
@@ -63,5 +58,5 @@ fnNativeTypeOf xs = case xs !! 0 of
     CalcitFn _ _ _ -> pure (CalcitKeyword "fn")
     CalcitSyntax _ _ -> pure (CalcitKeyword "syntax")
 
-fnNativeRecur :: (Array CalcitData) -> Effect CalcitData
-fnNativeRecur xs = pure (CalcitRecur xs)
+procRecur :: (Array CalcitData) -> Effect CalcitData
+procRecur xs = pure (CalcitRecur xs)

@@ -164,6 +164,20 @@
               {} (:a 1) (:b 2)
       :proc $ quote ()
       :configs $ {}
+    |app.test-effect $ {}
+      :ns $ quote (ns app.test-effect)
+      :defs $ {}
+        |test-effect! $ quote
+          defn test-effect! () (echo "\"Testing effect")
+            echo "\"path" $ get-source-path
+            echo "\"path" $ dirname (get-source-path)
+            eval-commonjs-file
+              join-path
+                dirname $ get-source-path
+                , "\"demo.js"
+              , "\"showDemo"
+      :proc $ quote ()
+      :configs $ {}
     |app.test-fn $ {}
       :ns $ quote (ns app.test-fn)
       :defs $ {}
@@ -216,9 +230,10 @@
           app.test-ref :refer $ test-ref!
           app.test-string :refer $ test-string!
           app.test-file :refer $ test-file!
+          app.test-effect :refer $ test-effect!
       :defs $ {}
         |main! $ quote
-          defn main! () (test-fn!) (test-list!) (test-math!) (test-macro!) (test-symbol!) (test-bool!) (test-map!) (test-ref!) (test-string!) (test-file!)
+          defn main! () (test-fn!) (test-list!) (test-math!) (test-macro!) (test-symbol!) (test-bool!) (test-map!) (test-ref!) (test-string!) (test-file!) (test-effect!)
             &let
               a $ &+ 1 2
               assert= a 3
@@ -247,6 +262,8 @@
             assert= false $ starts-with? "\"abcde" "\"bc"
             assert= true $ ends-with? "\"abcde" "\"de"
             assert= false $ ends-with? "\"abcde" "\"cd"
+            assert= "\"a/b.c/d" $ join-path "\"a/b.c" "\"d"
+            assert= "\"a" $ dirname "\"a/b"
       :proc $ quote ()
       :configs $ {}
     |app.test-symbol $ {}

@@ -1141,6 +1141,56 @@
         :proc $ {} (:type :expr) (:by |u0) (:at 1617340999361)
           :data $ {}
         :configs $ {}
+      |app.test-effect $ {}
+        :ns $ {} (:type :expr) (:by |u0) (:at 1617868329498)
+          :data $ {}
+            |T $ {} (:type :leaf) (:by |u0) (:at 1617868329498) (:text |ns)
+            |j $ {} (:type :leaf) (:by |u0) (:at 1617868329498) (:text |app.test-effect)
+        :defs $ {}
+          |test-effect! $ {} (:type :expr) (:by |u0) (:at 1617868334136)
+            :data $ {}
+              |T $ {} (:type :leaf) (:by |u0) (:at 1617868334136) (:text |defn)
+              |j $ {} (:type :leaf) (:by |u0) (:at 1617868334136) (:text |test-effect!)
+              |r $ {} (:type :expr) (:by |u0) (:at 1617868334136)
+                :data $ {}
+              |v $ {} (:type :expr) (:by |u0) (:at 1617868337692)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617868339210) (:text |echo)
+                  |j $ {} (:type :leaf) (:by |u0) (:at 1617868342360) (:text "|\"Testing effect")
+              |x $ {} (:type :expr) (:by |u0) (:at 1617868388160)
+                :data $ {}
+                  |T $ {} (:type :expr) (:by |u0) (:at 1617868376526)
+                    :data $ {}
+                      |T $ {} (:type :leaf) (:by |u0) (:at 1617868382051) (:text |get-source-path)
+                  |D $ {} (:type :leaf) (:by |u0) (:at 1617868388985) (:text |echo)
+                  |L $ {} (:type :leaf) (:by |u0) (:at 1617868392106) (:text "|\"path")
+              |y $ {} (:type :expr) (:by |u0) (:at 1617868388160)
+                :data $ {}
+                  |T $ {} (:type :expr) (:by |u0) (:at 1617868383748)
+                    :data $ {}
+                      |T $ {} (:type :expr) (:by |u0) (:at 1617868376526)
+                        :data $ {}
+                          |T $ {} (:type :leaf) (:by |u0) (:at 1617868382051) (:text |get-source-path)
+                      |D $ {} (:type :leaf) (:by |u0) (:at 1617868387354) (:text |dirname)
+                  |D $ {} (:type :leaf) (:by |u0) (:at 1617868388985) (:text |echo)
+                  |L $ {} (:type :leaf) (:by |u0) (:at 1617868392106) (:text "|\"path")
+              |yT $ {} (:type :expr) (:by |u0) (:at 1617868560597)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617868565478) (:text |eval-commonjs-file)
+                  |j $ {} (:type :expr) (:by |u0) (:at 1617868572995)
+                    :data $ {}
+                      |T $ {} (:type :expr) (:by |u0) (:at 1617868572365)
+                        :data $ {}
+                          |T $ {} (:type :leaf) (:by |u0) (:at 1617868572365) (:text |dirname)
+                          |j $ {} (:type :expr) (:by |u0) (:at 1617868572365)
+                            :data $ {}
+                              |T $ {} (:type :leaf) (:by |u0) (:at 1617868572365) (:text |get-source-path)
+                      |D $ {} (:type :leaf) (:by |u0) (:at 1617868576897) (:text |join-path)
+                      |j $ {} (:type :leaf) (:by |u0) (:at 1617868582063) (:text "|\"demo.js")
+                  |r $ {} (:type :leaf) (:by |u0) (:at 1617869077471) (:text "|\"showDemo")
+        :proc $ {} (:type :expr) (:by |u0) (:at 1617868329498)
+          :data $ {}
+        :configs $ {}
       |app.test-fn $ {}
         :ns $ {} (:type :expr) (:by |u0) (:at 1617341005275)
           :data $ {}
@@ -1459,6 +1509,13 @@
                     |v $ {} (:type :expr) (:by |u0) (:at 1617377891364)
                       :data $ {}
                         |j $ {} (:type :leaf) (:by |u0) (:at 1617442854373) (:text |test-ref!)
+                |yyj $ {} (:type :expr) (:by |u0) (:at 1617868356570)
+                  :data $ {}
+                    |j $ {} (:type :leaf) (:by |u0) (:at 1617868356570) (:text |app.test-effect)
+                    |r $ {} (:type :leaf) (:by |u0) (:at 1617868356570) (:text |:refer)
+                    |v $ {} (:type :expr) (:by |u0) (:at 1617868356570)
+                      :data $ {}
+                        |j $ {} (:type :leaf) (:by |u0) (:at 1617868356570) (:text |test-effect!)
                 |yyT $ {} (:type :expr) (:by |u0) (:at 1617821352282)
                   :data $ {}
                     |j $ {} (:type :leaf) (:by |u0) (:at 1617821352282) (:text |app.test-file)
@@ -1514,6 +1571,9 @@
                   |T $ {} (:type :leaf) (:by |u0) (:at 1617561227789) (:text |assert=)
                   |r $ {} (:type :leaf) (:by |u0) (:at 1617341813554) (:text |local-value)
                   |f $ {} (:type :leaf) (:by |u0) (:at 1617561229076) (:text |10)
+              |xxv $ {} (:type :expr) (:by |u0) (:at 1617868349551)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617868354170) (:text |test-effect!)
               |yyy $ {} (:type :expr) (:by |u0) (:at 1617208833388)
                 :data $ {}
                   |T $ {} (:type :leaf) (:by |u0) (:at 1617561235259) (:text |assert=)
@@ -1591,6 +1651,14 @@
                       |j $ {} (:type :leaf) (:by |u0) (:at 1617639538758) (:text "|\"a")
                       |r $ {} (:type :leaf) (:by |u0) (:at 1617639539815) (:text "|\"b")
                       |v $ {} (:type :leaf) (:by |u0) (:at 1617639540505) (:text "|\"c")
+              |yyyT $ {} (:type :expr) (:by |u0) (:at 1617863427716)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617863430198) (:text |assert=)
+                  |j $ {} (:type :leaf) (:by |u0) (:at 1617863430881) (:text "|\"a")
+                  |r $ {} (:type :expr) (:by |u0) (:at 1617863431740)
+                    :data $ {}
+                      |T $ {} (:type :leaf) (:by |u0) (:at 1617863432866) (:text |dirname)
+                      |j $ {} (:type :leaf) (:by |u0) (:at 1617863436402) (:text "|\"a/b")
               |yT $ {} (:type :expr) (:by |u0) (:at 1617470608699)
                 :data $ {}
                   |T $ {} (:type :leaf) (:by |u0) (:at 1617560722461) (:text |assert=)
@@ -1652,6 +1720,15 @@
                       |T $ {} (:type :leaf) (:by |u0) (:at 1617641350196) (:text |starts-with?)
                       |j $ {} (:type :leaf) (:by |u0) (:at 1617641358330) (:text "|\"abcde")
                       |r $ {} (:type :leaf) (:by |u0) (:at 1617641355946) (:text "|\"ab")
+              |yyy $ {} (:type :expr) (:by |u0) (:at 1617863409965)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1617863412075) (:text |assert=)
+                  |j $ {} (:type :leaf) (:by |u0) (:at 1617863426878) (:text "|\"a/b.c/d")
+                  |r $ {} (:type :expr) (:by |u0) (:at 1617863414526)
+                    :data $ {}
+                      |T $ {} (:type :leaf) (:by |u0) (:at 1617863418012) (:text |join-path)
+                      |j $ {} (:type :leaf) (:by |u0) (:at 1617863420358) (:text "|\"a/b.c")
+                      |r $ {} (:type :leaf) (:by |u0) (:at 1617863421302) (:text "|\"d")
               |yyT $ {} (:type :expr) (:by |u0) (:at 1617641300579)
                 :data $ {}
                   |T $ {} (:type :leaf) (:by |u0) (:at 1617641301978) (:text |assert=)
