@@ -224,5 +224,84 @@
             quasiquote
               if (~ a) true (~ b)
 
+        |cond $ quote
+          defmacro cond (& pairs)
+            if (empty? pairs) nil
+              &let
+                p0 $ first pairs
+                assert
+                  &str-concat "|pairs for cond: " (&str p0)
+                  &and (list? p0) (&= 2 (count p0))
+                &let
+                  v $ first p0
+                  &let
+                    then $ last p0
+                    if (&= v '_) then
+                      quasiquote
+                        if (~ v) (~ then) (cond (~@ (rest pairs)))
+
+        |let[] $ quote
+          defmacro let[]
+            quasiquote 'TODO
+
+        |case $ quote
+          defmacro case (v & pairs)
+            ; TODO symbols should only be evaled once
+            if (empty? pairs) nil
+              &let
+                p0 $ first pairs
+                assert
+                  &str-concat "|pairs for cond: " (&str p0)
+                  &and (list? p0) (&= 2 (count p0))
+                &let (v1 $ first p0)
+                  &let (r1 $ last p0)
+                    quasiquote
+                      if (&or (&= (~ v1) '_) (&= (~ v1) (~ v))) (~ r1)
+                        case (~ v) (~@ (rest pairs))
+
+        |+ $ quote
+          defmacro + (x0 & xs)
+            quasiquote-fold-tree x0 '&+ xs
+
+        |* $ quote
+          defmacro + (x0 & xs)
+            quasiquote-fold-tree x0 '&* xs
+
+        |- $ quote
+          defmacro - (& xs)
+            case (count xs)
+              0 0
+              1 $ [] &- 0 (first xs)
+              _ $ quasiquote-fold-tree (first xs) &- (rest xs)
+
+        |/ $ quote
+          defmacro / (& xs)
+            case (count xs)
+              0 0
+              1 $ [] &/ 1 (first xs)
+              _ $ quasiquote-fold-tree (first xs) &/ (rest xs)
+
+        |and $ quote
+          defmacro and (x0 & xs)
+            quasiquote-fold-tree x0 '&and xs
+
+        |or $ quote
+          defmacro or (x0 & xs)
+            quasiquote-fold-tree x0 '&or xs
+
+        |= $ quote
+          defmacro = (x0 & xs)
+            if (empty? xs) true
+              quasiquote
+                if
+                  &= (~ x0) (~ (first xs))
+                  = (~ x0) (~@ (rest xs))
+                  , false
+
+        |quasiquote-fold-tree $ quote
+          defn quasiquote-fold-tree (x0 op xs)
+            if (empty? xs) x0
+              recur ([] op x0 (first xs)) op (rest xs)
+
       :proc $ quote ()
       :configs $ {}
