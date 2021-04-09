@@ -255,9 +255,10 @@
                   &and (list? p0) (&= 2 (count p0))
                 &let (v1 $ first p0)
                   &let (r1 $ last p0)
-                    quasiquote
-                      if (&or (&= (~ v1) '_) (&= (~ v1) (~ v))) (~ r1)
-                        case (~ v) (~@ (rest pairs))
+                    if (&= v1 '_) r1
+                      quasiquote
+                        if (&= (~ v1) (~ v)) (~ r1)
+                          case (~ v) (~@ (rest pairs))
 
         |+ $ quote
           defmacro + (x0 & xs)
@@ -302,6 +303,17 @@
           defn quasiquote-fold-tree (x0 op xs)
             if (empty? xs) x0
               recur ([] op x0 (first xs)) op (rest xs)
+
+        |-> $ quote
+          defmacro -> (x0 & xs)
+            if (empty? xs) x0
+              &let (e0 (first xs))
+                if (symbol? e0)
+                  recur ([] e0 x0) & (rest xs)
+                  if (list? e0)
+                    recur (concat ([] (first e0) x0) (rest e0)) & (rest xs)
+                    raise $ &str-concat "|unknown node found in expanding -> , got: "
+                      &str e0
 
       :proc $ quote ()
       :configs $ {}

@@ -71,6 +71,17 @@
             assert= false $ and false true false
             assert= true $ = 1 1 1
             assert= false $ = 1 1 2
+            assert=
+              quote $ d
+                c $ b a
+              macroexpand $ quote (-> a b c d)
+            assert=
+              quote $ d (b a c)
+              macroexpand $ quote
+                -> a (b c) (d)
+            &let
+              square $ fn (x) (&* x x)
+              assert= "\"9~now" $ -> 1 (+ 2) square &str (&str-concat "\"~now")
         |m-count $ quote
           defmacro m-count (xs)
             quasiquote $ count
