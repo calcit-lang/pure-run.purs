@@ -335,5 +335,6 @@
             assert= false $ odd? 4
             assert= true $ even? 4
             assert= false $ even? 3
+            assert= 81 $ pow 3 4
       :proc $ quote ()
       :configs $ {}
