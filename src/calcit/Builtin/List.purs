@@ -1,7 +1,7 @@
 module Calcit.Builtin.List where
 
 import Calcit.Primes (CalcitData(..))
-import Data.Array ((!!), length)
+import Data.Array (length, range, replicate, reverse, (!!))
 import Data.Array as Array
 import Data.Int (toNumber)
 import Data.Int as Int
@@ -117,15 +117,42 @@ procMapMaybe xs = case (xs !! 0), (xs !! 1) of
       _, _ -> Nothing
     _ -> Nothing
 
--- TODO range
--- TODO reverse
--- TODO repeat
+procRange :: (Array CalcitData) -> Effect CalcitData
+procRange xs = case (xs !! 0), (xs !! 1) of
+  Just (CalcitNumber from), Just (CalcitNumber to) -> case (Int.fromNumber from), (Int.fromNumber to) of
+    Just n1, Just n2 -> do
+      ys <- traverse buildNumber (range n1 n2)
+      pure (CalcitList ys)
+    _, _ -> throw "range expected numbers"
+  Just (CalcitNumber to), Nothing -> case Int.fromNumber to of
+    Just n -> do
+      ys <- (traverse buildNumber (range 0 n))
+      pure (CalcitList ys)
+    Nothing -> throw "range expected integers"
+  Just a, _ -> throw "range expected numbers"
+  Nothing, _ -> throw "range expected 1~2 arguments"
+  where
+  buildNumber x = pure (CalcitNumber (Int.toNumber x))
+
+procRepeat :: Array CalcitData -> Effect CalcitData
+procRepeat xs = case xs !! 0, xs !! 1 of
+  Just a, Just (CalcitNumber x) -> case Int.fromNumber x of
+    Just n -> pure (CalcitList (replicate n a))
+    Nothing -> throw "repeat expecter number in integer"
+  Just a, Just b -> throw "repeat expected a number in second argument"
+  _, _ -> throw "repeat expected 2 arguments"
+
+procReverse :: Array CalcitData -> Effect CalcitData
+procReverse xs = case xs !! 0 of
+  Just (CalcitList ys) -> pure (CalcitList (reverse ys))
+  Just a -> throw "reverse expected a list"
+  Nothing -> throw "reverse expected 1 argument"
+
 -- TODO sort
 -- TODO take
 -- TODO drop
 -- TODO find
 -- TODO find-index
--- TODO fold-compare
 -- TODO group-by
 -- TODO interleave
 -- TODO zip

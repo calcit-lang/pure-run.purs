@@ -142,6 +142,11 @@
               fn (x) (&> x 0)
             assert= false $ every? ([] 2 3 4)
               fn (x) (&> x 2)
+            assert= ([] 0 1 2 3 4) (range 4)
+            assert= ([] 1 2 3 4) (range 1 4)
+            assert= ([] :a :a :a) (repeat :a 3)
+            assert= ([] :a :b :c)
+              reverse $ [] :c :b :a
       :proc $ quote ()
       :configs $ {}
     |app.lib $ {}
