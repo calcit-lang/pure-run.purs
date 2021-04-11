@@ -1,7 +1,7 @@
 module Calcit.Builtin.List where
 
 import Calcit.Primes (CalcitData(..))
-import Data.Array (length, range, replicate, reverse, (!!))
+import Data.Array (cons, length, range, replicate, reverse, snoc, take, (!!))
 import Data.Array as Array
 import Data.Int (toNumber)
 import Data.Int as Int
@@ -147,6 +147,42 @@ procReverse xs = case xs !! 0 of
   Just (CalcitList ys) -> pure (CalcitList (reverse ys))
   Just a -> throw "reverse expected a list"
   Nothing -> throw "reverse expected 1 argument"
+
+procAppend :: Array CalcitData -> Effect CalcitData
+procAppend xs = case xs !! 0, xs !! 1 of
+  Just (CalcitList ys), Just a -> pure (CalcitList (snoc ys a))
+  Just a, Just b -> throw "append-expanded a list"
+  _, _ -> throw "append expected 2 arguments"
+
+procPrepend :: Array CalcitData -> Effect CalcitData
+procPrepend xs = case xs !! 0, xs !! 1 of
+  Just (CalcitList ys), Just a -> pure (CalcitList (cons a ys))
+  Just a, Just b -> throw "prepend-expanded a list"
+  _, _ -> throw "prepend expected 2 arguments"
+
+procTake :: (Array CalcitData) -> Effect CalcitData
+procTake xs = case (xs !! 0), (xs !! 1) of
+  Just (CalcitList ys), Just (CalcitNumber n) -> case Int.fromNumber n of
+    Nothing -> throw "take expected index in int"
+    Just index -> pure (CalcitList (take index ys))
+  Just (CalcitString s), Just (CalcitNumber n) -> case Int.fromNumber n of
+    Nothing -> throw "take expected index in int"
+    Just index -> pure (CalcitString (String.take index s))
+  _, Just (CalcitNumber _) -> throw "take expected list or string"
+  Just (CalcitList _), _ -> throw "take expected index"
+  _, _ -> throw "take expected 2 arguments"
+
+procDrop :: (Array CalcitData) -> Effect CalcitData
+procDrop xs = case (xs !! 0), (xs !! 1) of
+  Just (CalcitList ys), Just (CalcitNumber n) -> case Int.fromNumber n of
+    Nothing -> throw "drop expected index in int"
+    Just index -> pure (CalcitList (Array.drop index ys))
+  Just (CalcitString s), Just (CalcitNumber n) -> case Int.fromNumber n of
+    Nothing -> throw "drop expected index in int"
+    Just index -> pure (CalcitString (String.drop index s))
+  _, Just (CalcitNumber _) -> throw "drop expected list or string"
+  Just (CalcitList _), _ -> throw "drop expected index"
+  _, _ -> throw "drop expected 2 arguments"
 
 -- TODO sort
 -- TODO take
