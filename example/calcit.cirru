@@ -2272,6 +2272,15 @@
                     :data $ {}
                       |T $ {} (:type :leaf) (:by |u0) (:at 1617523911909) (:text |even?)
                       |j $ {} (:type :leaf) (:by |u0) (:at 1617523912945) (:text |4)
+              |yyT $ {} (:type :expr) (:by |u0) (:at 1618078446846)
+                :data $ {}
+                  |T $ {} (:type :leaf) (:by |u0) (:at 1618078449108) (:text |assert=)
+                  |j $ {} (:type :expr) (:by |u0) (:at 1618078452016)
+                    :data $ {}
+                      |T $ {} (:type :leaf) (:by |u0) (:at 1618078452852) (:text |pow)
+                      |j $ {} (:type :leaf) (:by |u0) (:at 1618078453700) (:text |3)
+                      |r $ {} (:type :leaf) (:by |u0) (:at 1618078453921) (:text |4)
+                  |b $ {} (:type :leaf) (:by |u0) (:at 1618078498783) (:text |81)
               |r $ {} (:type :expr) (:by |u0) (:at 1617341354832)
                 :data $ {}
               |y $ {} (:type :expr) (:by |u0) (:at 1617341511990)

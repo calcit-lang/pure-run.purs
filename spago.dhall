@@ -17,6 +17,7 @@ You can edit this file as you like.
   , "foldable-traversable"
   , "foreign-object"
   , "integers"
+  , "math"
   , "maybe"
   , "node-buffer"
   , "node-child-process"
