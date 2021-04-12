@@ -142,6 +142,19 @@
               fn (x) (&> x 0)
             assert= false $ every? ([] 2 3 4)
               fn (x) (&> x 2)
+            assert= ([] 0 1 2 3 4) (range 4)
+            assert= ([] 1 2 3 4) (range 1 4)
+            assert= ([] :a :a :a) (repeat :a 3)
+            assert= ([] :a :b :c)
+              reverse $ [] :c :b :a
+            assert= ([] 1 2 3 4)
+              append ([] 1 2 3) 4
+            assert= ([] 4 1 2 3)
+              prepend ([] 1 2 3) 4
+            assert= ([] 1 2)
+              take ([] 1 2 3) 2
+            assert= ([] 3)
+              drop ([] 1 2 3) 2
       :proc $ quote ()
       :configs $ {}
     |app.lib $ {}
@@ -304,6 +317,8 @@
             assert= false $ ends-with? "\"abcde" "\"cd"
             assert= "\"a/b.c/d" $ join-path "\"a/b.c" "\"d"
             assert= "\"a" $ dirname "\"a/b"
+            assert= "\"12" $ take "\"1234" 2
+            assert= "\"34" $ drop "\"1234" 2
       :proc $ quote ()
       :configs $ {}
     |app.test-symbol $ {}

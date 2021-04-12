@@ -1,7 +1,7 @@
 module Calcit.Builtin.List where
 
 import Calcit.Primes (CalcitData(..))
-import Data.Array ((!!), length)
+import Data.Array (cons, length, range, replicate, reverse, snoc, take, (!!))
 import Data.Array as Array
 import Data.Int (toNumber)
 import Data.Int as Int
@@ -117,15 +117,78 @@ procMapMaybe xs = case (xs !! 0), (xs !! 1) of
       _, _ -> Nothing
     _ -> Nothing
 
--- TODO range
--- TODO reverse
--- TODO repeat
+procRange :: (Array CalcitData) -> Effect CalcitData
+procRange xs = case (xs !! 0), (xs !! 1) of
+  Just (CalcitNumber from), Just (CalcitNumber to) -> case (Int.fromNumber from), (Int.fromNumber to) of
+    Just n1, Just n2 -> do
+      ys <- traverse buildNumber (range n1 n2)
+      pure (CalcitList ys)
+    _, _ -> throw "range expected numbers"
+  Just (CalcitNumber to), Nothing -> case Int.fromNumber to of
+    Just n -> do
+      ys <- (traverse buildNumber (range 0 n))
+      pure (CalcitList ys)
+    Nothing -> throw "range expected integers"
+  Just a, _ -> throw "range expected numbers"
+  Nothing, _ -> throw "range expected 1~2 arguments"
+  where
+  buildNumber x = pure (CalcitNumber (Int.toNumber x))
+
+procRepeat :: Array CalcitData -> Effect CalcitData
+procRepeat xs = case xs !! 0, xs !! 1 of
+  Just a, Just (CalcitNumber x) -> case Int.fromNumber x of
+    Just n -> pure (CalcitList (replicate n a))
+    Nothing -> throw "repeat expecter number in integer"
+  Just a, Just b -> throw "repeat expected a number in second argument"
+  _, _ -> throw "repeat expected 2 arguments"
+
+procReverse :: Array CalcitData -> Effect CalcitData
+procReverse xs = case xs !! 0 of
+  Just (CalcitList ys) -> pure (CalcitList (reverse ys))
+  Just a -> throw "reverse expected a list"
+  Nothing -> throw "reverse expected 1 argument"
+
+procAppend :: Array CalcitData -> Effect CalcitData
+procAppend xs = case xs !! 0, xs !! 1 of
+  Just (CalcitList ys), Just a -> pure (CalcitList (snoc ys a))
+  Just a, Just b -> throw "append-expanded a list"
+  _, _ -> throw "append expected 2 arguments"
+
+procPrepend :: Array CalcitData -> Effect CalcitData
+procPrepend xs = case xs !! 0, xs !! 1 of
+  Just (CalcitList ys), Just a -> pure (CalcitList (cons a ys))
+  Just a, Just b -> throw "prepend-expanded a list"
+  _, _ -> throw "prepend expected 2 arguments"
+
+procTake :: (Array CalcitData) -> Effect CalcitData
+procTake xs = case (xs !! 0), (xs !! 1) of
+  Just (CalcitList ys), Just (CalcitNumber n) -> case Int.fromNumber n of
+    Nothing -> throw "take expected index in int"
+    Just index -> pure (CalcitList (take index ys))
+  Just (CalcitString s), Just (CalcitNumber n) -> case Int.fromNumber n of
+    Nothing -> throw "take expected index in int"
+    Just index -> pure (CalcitString (String.take index s))
+  _, Just (CalcitNumber _) -> throw "take expected list or string"
+  Just (CalcitList _), _ -> throw "take expected index"
+  _, _ -> throw "take expected 2 arguments"
+
+procDrop :: (Array CalcitData) -> Effect CalcitData
+procDrop xs = case (xs !! 0), (xs !! 1) of
+  Just (CalcitList ys), Just (CalcitNumber n) -> case Int.fromNumber n of
+    Nothing -> throw "drop expected index in int"
+    Just index -> pure (CalcitList (Array.drop index ys))
+  Just (CalcitString s), Just (CalcitNumber n) -> case Int.fromNumber n of
+    Nothing -> throw "drop expected index in int"
+    Just index -> pure (CalcitString (String.drop index s))
+  _, Just (CalcitNumber _) -> throw "drop expected list or string"
+  Just (CalcitList _), _ -> throw "drop expected index"
+  _, _ -> throw "drop expected 2 arguments"
+
 -- TODO sort
 -- TODO take
 -- TODO drop
 -- TODO find
 -- TODO find-index
--- TODO fold-compare
 -- TODO group-by
 -- TODO interleave
 -- TODO zip
