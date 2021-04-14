@@ -5,13 +5,13 @@ import Data.Array ((!!))
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Console (log)
-import Prelude (Unit, discard)
-
-foreign import argv :: Array String
+import Node.Process (argv)
+import Prelude (Unit, bind, discard)
 
 main :: Effect Unit
 main = do
-  case argv !! 2 of
+  args <- argv
+  case args !! 2 of
     Nothing -> do
       log "defaults to compact.cirru"
       runCalcit "compact.cirru"
