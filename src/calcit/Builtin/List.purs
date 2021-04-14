@@ -185,8 +185,6 @@ procDrop xs = case (xs !! 0), (xs !! 1) of
   _, _ -> throw "drop expected 2 arguments"
 
 -- TODO sort
--- TODO take
--- TODO drop
 -- TODO find
 -- TODO find-index
 -- TODO group-by
